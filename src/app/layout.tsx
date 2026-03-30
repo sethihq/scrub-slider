@@ -4,16 +4,16 @@ import { ThemeProvider } from "@/hooks/use-theme";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "scrub-slider",
+  title: "Scrub Slider",
   description: "A slider component with scrub sounds and haptic feedback. Built with Radix UI, NumberFlow, Web Audio API, and web-haptics.",
   icons: {
     icon: "/favicon.svg",
   },
   openGraph: {
-    title: "scrub-slider",
+    title: "Scrub Slider",
     description: "A slider component with scrub sounds and haptic feedback.",
     url: "https://scrub-slider.vercel.app",
-    siteName: "scrub-slider",
+    siteName: "Scrub Slider",
     type: "website",
     images: [
       {
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "scrub-slider",
+    title: "Scrub Slider",
     description: "A slider component with scrub sounds and haptic feedback.",
     images: ["https://scrub-slider.vercel.app/og.png"],
   },
