@@ -57,4 +57,4 @@ The slider reads these CSS custom properties:
 
 ## Credits
 
-Built with [Claude Code](https://claude.ai/code). Parameters tuned live with [DialKit](https://dialkit.dev).
+Built with [Claude Code](https://claude.ai/code). Parameters tuned live with [DialKit](https://x.com/joshpuckett/status/2024141004685656447).
