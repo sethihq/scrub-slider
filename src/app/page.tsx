@@ -709,9 +709,9 @@ function SurfaceNav() {
         className="fixed bottom-5 left-0 right-0 z-50 flex justify-center select-none"
         style={{
           opacity: navVisible ? 1 : 0,
-          transform: `translateY(${navVisible ? "0" : "12px"})`,
-          filter: navVisible ? "blur(0px)" : "blur(4px)",
-          transition: "opacity 400ms cubic-bezier(0.16, 1, 0.3, 1), transform 400ms cubic-bezier(0.16, 1, 0.3, 1), filter 400ms cubic-bezier(0.16, 1, 0.3, 1)",
+          transform: `translateY(${navVisible ? "0" : "100%"})`,
+          filter: navVisible ? "blur(0px)" : "blur(6px)",
+          transition: "opacity 500ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1), filter 400ms cubic-bezier(0.16, 1, 0.3, 1)",
           pointerEvents: navVisible ? "auto" : "none",
         }}
       >
