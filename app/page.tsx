@@ -5,53 +5,6 @@ import { Slider } from "@/components/ui/slider";
 import { useTheme } from "@/hooks/use-theme";
 import { MadeWithLove } from "@/components/made-with-love";
 
-/* ── Theme Toggle ──────────────────────────────────── */
-
-function ThemeToggle() {
-  const { resolvedTheme, setTheme } = useTheme();
-
-  return (
-    <button
-      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-      className="flex size-9 items-center justify-center rounded-full border border-[var(--toolbar-border)] bg-[var(--surface)] text-[var(--page-text)] backdrop-blur-sm cursor-pointer transition-[background-color,border-color,color,scale] duration-200 active:scale-[0.97]"
-      aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
-    >
-      <svg
-        width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-        className="absolute"
-        style={{
-          opacity: resolvedTheme === "dark" ? 1 : 0,
-          transform: resolvedTheme === "dark" ? "scale(1) rotate(0deg)" : "scale(0.25) rotate(-180deg)",
-          filter: resolvedTheme === "dark" ? "blur(0px)" : "blur(4px)",
-          transition: "opacity 400ms cubic-bezier(0.16, 1, 0.3, 1), transform 400ms cubic-bezier(0.16, 1, 0.3, 1), filter 400ms cubic-bezier(0.16, 1, 0.3, 1)",
-        }}
-      >
-        <circle cx="12" cy="12" r="5" />
-        <line x1="12" y1="1" x2="12" y2="3" />
-        <line x1="12" y1="21" x2="12" y2="23" />
-        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-        <line x1="1" y1="12" x2="3" y2="12" />
-        <line x1="21" y1="12" x2="23" y2="12" />
-        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-      </svg>
-      <svg
-        width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-        className="absolute"
-        style={{
-          opacity: resolvedTheme === "light" ? 1 : 0,
-          transform: resolvedTheme === "light" ? "scale(1) rotate(0deg)" : "scale(0.25) rotate(180deg)",
-          filter: resolvedTheme === "light" ? "blur(0px)" : "blur(4px)",
-          transition: "opacity 400ms cubic-bezier(0.16, 1, 0.3, 1), transform 400ms cubic-bezier(0.16, 1, 0.3, 1), filter 400ms cubic-bezier(0.16, 1, 0.3, 1)",
-        }}
-      >
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-      </svg>
-    </button>
-  );
-}
-
 /* ── Parameter Controls ────────────────────────────── */
 
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
@@ -183,7 +136,97 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+/* ── Draggable Panel ───────────────────────────────── */
+
+function DraggablePanel({ children }: { children: React.ReactNode }) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const dragState = useRef({ dragging: false, startX: 0, startY: 0, offsetX: 0, offsetY: 0 });
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest("button, input, a")) return;
+    dragState.current = {
+      dragging: true,
+      startX: e.clientX - pos.x,
+      startY: e.clientY - pos.y,
+      offsetX: pos.x,
+      offsetY: pos.y,
+    };
+    setIsDragging(true);
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!dragState.current.dragging) return;
+    setPos({
+      x: e.clientX - dragState.current.startX,
+      y: e.clientY - dragState.current.startY,
+    });
+  };
+
+  const onPointerUp = () => {
+    dragState.current.dragging = false;
+    setIsDragging(false);
+  };
+
+  return (
+    <div
+      ref={panelRef}
+      className="relative w-full max-w-[320px] lg:w-[220px] lg:shrink-0 select-none"
+      style={{
+        transform: `translate(${pos.x}px, ${pos.y}px)`,
+        transition: isDragging ? "none" : "transform 400ms cubic-bezier(0.16, 1, 0.3, 1)",
+        cursor: isDragging ? "grabbing" : "grab",
+        zIndex: isDragging ? 50 : 1,
+      }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+    >
+      {/* Six-dot drag handle */}
+      <div
+        className="absolute -left-6 top-1/2 -translate-y-1/2 flex flex-col gap-[3px] transition-opacity duration-200"
+        style={{ opacity: isDragging ? 0.6 : 0.25 }}
+      >
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="flex gap-[3px]">
+            <div className="w-[4px] h-[4px] rounded-full" style={{ backgroundColor: "var(--on-surface-muted)" }} />
+            <div className="w-[4px] h-[4px] rounded-full" style={{ backgroundColor: "var(--on-surface-muted)" }} />
+          </div>
+        ))}
+      </div>
+      {children}
+    </div>
+  );
+}
+
 /* ── Code Block ────────────────────────────────────── */
+
+/* Neutral syntax highlighting — no colors, just weight and opacity */
+function highlightCode(code: string) {
+  return code.split("\n").map((line, i) => {
+    // Comments
+    if (line.trimStart().startsWith("/*") || line.trimStart().startsWith("*") || line.trimStart().startsWith("//")) {
+      return <div key={i} style={{ opacity: 0.35 }}>{line}</div>;
+    }
+    // CSS property lines (key: value;)
+    const cssMatch = line.match(/^(\s*)(--[\w-]+|[\w-]+)(:)(.+)(;?)$/);
+    if (cssMatch) {
+      return (
+        <div key={i}>
+          {cssMatch[1]}
+          <span style={{ opacity: 0.6 }}>{cssMatch[2]}</span>
+          <span style={{ opacity: 0.3 }}>{cssMatch[3]}</span>
+          <span>{cssMatch[4]}</span>
+          <span style={{ opacity: 0.3 }}>{cssMatch[5]}</span>
+        </div>
+      );
+    }
+    return <div key={i}>{line || "\u00A0"}</div>;
+  });
+}
 
 function CodeBlock({ code, label }: { code: string; label?: string }) {
   return (
@@ -195,7 +238,7 @@ function CodeBlock({ code, label }: { code: string; label?: string }) {
         </div>
       )}
       <pre className="px-5 py-4 overflow-x-auto text-[13px] font-mono leading-relaxed text-[var(--page-text)]">
-        <code>{code}</code>
+        <code>{highlightCode(code)}</code>
       </pre>
     </div>
   );
@@ -204,31 +247,67 @@ function CodeBlock({ code, label }: { code: string; label?: string }) {
 /* ── Install Block with package manager tabs ───────── */
 
 const PKG_MANAGERS = ["npm", "pnpm", "yarn", "bun"] as const;
-const DEPS = "@radix-ui/react-slider @number-flow/react web-haptics clsx tailwind-merge";
+const PKG = "@sethihq/scrub-slider";
 
-const INSTALL_COMMANDS: Record<(typeof PKG_MANAGERS)[number], string> = {
-  npm: `npm i ${DEPS}`,
-  pnpm: `pnpm add ${DEPS}`,
-  yarn: `yarn add ${DEPS}`,
-  bun: `bun add ${DEPS}`,
+const INSTALL_PREFIXES: Record<(typeof PKG_MANAGERS)[number], string> = {
+  npm: "npm i",
+  pnpm: "pnpm add",
+  yarn: "yarn add",
+  bun: "bun add",
 };
 
 function InstallBlock() {
   const [pm, setPm] = useState<(typeof PKG_MANAGERS)[number]>("npm");
   const [displayedPm, setDisplayedPm] = useState(pm);
-  const [transitioning, setTransitioning] = useState(false);
+  const [phase, setPhase] = useState<"idle" | "out" | "in">("idle");
+  const [direction, setDirection] = useState(1);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  useEffect(() => {
-    if (pm === displayedPm) return;
-    setTransitioning(true);
+  const handlePmChange = (newPm: (typeof PKG_MANAGERS)[number]) => {
+    if (newPm === pm) return;
+    const oldIndex = PKG_MANAGERS.indexOf(pm);
+    const newIndex = PKG_MANAGERS.indexOf(newPm);
+    setDirection(newIndex > oldIndex ? 1 : -1);
+    setPm(newPm);
+    // Phase 1: slide old text out
+    setPhase("out");
     clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
-      setDisplayedPm(pm);
-      setTransitioning(false);
-    }, 150);
-  }, [pm, displayedPm]);
+      // Phase 2: swap text, slide new text in
+      setDisplayedPm(newPm);
+      setPhase("in");
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setPhase("idle"));
+      });
+    }, 140);
+  };
 
+  const fullCommand = `${INSTALL_PREFIXES[pm]} ${PKG}`;
+  const ease = "cubic-bezier(0.16, 1, 0.3, 1)";
+
+  // Exit: slide out in the direction of movement
+  // Enter: start offset from the opposite side, slide to 0
+  const prefixStyle: React.CSSProperties =
+    phase === "out"
+      ? {
+          opacity: 0,
+          transform: `translateX(${-direction * 16}px)`,
+          filter: "blur(3px)",
+          transition: `opacity 120ms ease-in, transform 140ms ease-in, filter 120ms ease-in`,
+        }
+      : phase === "in"
+        ? {
+            opacity: 0,
+            transform: `translateX(${direction * 16}px)`,
+            filter: "blur(3px)",
+            transition: "none",
+          }
+        : {
+            opacity: 1,
+            transform: "translateX(0)",
+            filter: "blur(0px)",
+            transition: `opacity 220ms ${ease}, transform 260ms ${ease}, filter 220ms ${ease}`,
+          };
 
   return (
     <div>
@@ -236,7 +315,7 @@ function InstallBlock() {
         {PKG_MANAGERS.map((p) => (
           <button
             key={p}
-            onClick={() => setPm(p)}
+            onClick={() => handlePmChange(p)}
             className="text-[14px] cursor-pointer transition-colors duration-150 outline-none"
             style={{
               color: pm === p ? "var(--page-text)" : "var(--page-text-muted)",
@@ -253,22 +332,13 @@ function InstallBlock() {
           <pre className="text-[13px] font-mono text-[var(--page-text)] overflow-x-auto">
             <code>
               <span className="text-[var(--page-text-muted)]">$ </span>
-              <span
-                style={{
-                  display: "inline-block",
-                  opacity: transitioning ? 0 : 1,
-                  transform: transitioning ? "translateY(4px)" : "translateY(0)",
-                  filter: transitioning ? "blur(2px)" : "blur(0px)",
-                  transition: transitioning
-                    ? "opacity 100ms ease-in, transform 100ms ease-in, filter 100ms ease-in"
-                    : "opacity 200ms ease-out, transform 200ms ease-out, filter 200ms ease-out",
-                }}
-              >
-                {INSTALL_COMMANDS[displayedPm]}
+              <span className="inline-block" style={prefixStyle}>
+                {INSTALL_PREFIXES[displayedPm]}
               </span>
+              <span> {PKG}</span>
             </code>
           </pre>
-          <CopyButton text={INSTALL_COMMANDS[pm]} />
+          <CopyButton text={fullCommand} />
         </div>
       </div>
     </div>
@@ -482,139 +552,257 @@ const PROPS_CATEGORIES: { category: string; props: { prop: string; type: string;
   },
 ];
 
-const CODE_CELL_CLASS = "rounded-md bg-[var(--outline)] px-1.5 py-0.5 font-mono text-[12px]";
+const CODE_CELL_CLASS = "rounded-md bg-[color-mix(in_srgb,var(--on-surface-muted)_15%,transparent)] px-1.5 py-0.5 font-mono text-[12px] text-[var(--page-text-muted)]";
 
 function PropsTable() {
-  // Flatten for mobile
-  const allProps = PROPS_CATEGORIES.flatMap((cat) =>
-    cat.props.map((p) => ({ ...p, category: cat.category }))
-  );
+  const [activeCat, setActiveCat] = useState(PROPS_CATEGORIES[0].category);
+  const [displayedCat, setDisplayedCat] = useState(activeCat);
+  const [phase, setPhase] = useState<"idle" | "out" | "in">("idle");
+  const [direction, setDirection] = useState(1);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const handleCatChange = (cat: string) => {
+    if (cat === activeCat) return;
+    const oldIdx = PROPS_CATEGORIES.findIndex((c) => c.category === activeCat);
+    const newIdx = PROPS_CATEGORIES.findIndex((c) => c.category === cat);
+    setDirection(newIdx > oldIdx ? 1 : -1);
+    setActiveCat(cat);
+    setPhase("out");
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      setDisplayedCat(cat);
+      setPhase("in");
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setPhase("idle"));
+      });
+    }, 140);
+  };
+
+  const activeProps = PROPS_CATEGORIES.find((c) => c.category === displayedCat)?.props ?? [];
+  const ease = "cubic-bezier(0.16, 1, 0.3, 1)";
+
+  const contentStyle: React.CSSProperties =
+    phase === "out"
+      ? { opacity: 0, transform: `translateX(${-direction * 16}px)`, filter: "blur(3px)", transition: "opacity 120ms ease-in, transform 140ms ease-in, filter 120ms ease-in" }
+      : phase === "in"
+        ? { opacity: 0, transform: `translateX(${direction * 16}px)`, filter: "blur(3px)", transition: "none" }
+        : { opacity: 1, transform: "translateX(0)", filter: "blur(0px)", transition: `opacity 220ms ${ease}, transform 260ms ${ease}, filter 220ms ${ease}` };
 
   return (
-    <>
-      {/* Desktop table (sm and above) */}
-      <div className="hidden sm:block rounded-2xl border border-[var(--outline)] overflow-hidden">
-        <table className="w-full text-left text-[13px]">
-          <thead>
-            <tr className="border-b border-[var(--outline)]">
-              <th className="px-5 py-3 text-[12px] font-medium text-[var(--page-text-muted)] opacity-60">Prop</th>
-              <th className="px-5 py-3 text-[12px] font-medium text-[var(--page-text-muted)] opacity-60">Type</th>
-              <th className="px-5 py-3 text-[12px] font-medium text-[var(--page-text-muted)] opacity-60">Default</th>
-              <th className="px-5 py-3 text-[12px] font-medium text-[var(--page-text-muted)] opacity-60">Description</th>
-            </tr>
-          </thead>
-          <tbody>
-            {PROPS_CATEGORIES.map((cat, catIdx) => {
-              const rows: React.ReactNode[] = [];
-              // Category subheader
-              rows.push(
-                <tr key={`cat-${cat.category}`} className="border-b border-[var(--outline)]">
-                  <td
-                    colSpan={4}
-                    className="px-5 py-2 text-[11px] font-medium tracking-wider uppercase text-[var(--page-text-muted)] opacity-40"
-                  >
-                    {cat.category}
-                  </td>
-                </tr>
-              );
-              // Props rows
-              cat.props.forEach((row, i) => {
-                const isLast = catIdx === PROPS_CATEGORIES.length - 1 && i === cat.props.length - 1;
-                rows.push(
-                  <tr key={row.prop} className={!isLast ? "border-b border-[var(--outline)]" : ""}>
-                    <td className="px-5 py-3 font-mono text-[12px] text-[var(--page-text)]">
-                      {row.prop}
-                      {row.required && (
-                        <span className="text-[var(--page-text-muted)] opacity-40 ml-1">*</span>
-                      )}
-                    </td>
-                    <td className="px-5 py-3 text-[var(--page-text-muted)]">
-                      <code className={CODE_CELL_CLASS}>{row.type}</code>
-                    </td>
-                    <td className="px-5 py-3 text-[var(--page-text-muted)]">
-                      <code className={CODE_CELL_CLASS}>{row.default}</code>
-                    </td>
-                    <td className="px-5 py-3 text-[12px] text-[var(--page-text-muted)]">{row.desc}</td>
-                  </tr>
-                );
-              });
-              return rows;
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Mobile stacked cards (below sm) */}
-      <div className="sm:hidden space-y-3">
+    <div>
+      <div className="flex items-center gap-4 mb-4 select-none">
         {PROPS_CATEGORIES.map((cat) => (
-          <div key={cat.category}>
-            <div className="text-[11px] font-medium tracking-wider uppercase text-[var(--page-text-muted)] opacity-40 mb-2 px-1">
-              {cat.category}
-            </div>
-            <div className="space-y-2">
-              {cat.props.map((row) => (
-                <div
-                  key={row.prop}
-                  className="rounded-2xl border border-[var(--outline)] px-4 py-3 space-y-2"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-[13px] font-medium text-[var(--page-text)]">
-                      {row.prop}
-                      {row.required && (
-                        <span className="text-[var(--page-text-muted)] opacity-40 ml-1">*</span>
-                      )}
-                    </span>
-                    <code className={CODE_CELL_CLASS}>{row.default}</code>
-                  </div>
-                  <div>
-                    <code className={CODE_CELL_CLASS}>{row.type}</code>
-                  </div>
-                  <p className="text-[12px] text-[var(--page-text-muted)]">{row.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+          <button
+            key={cat.category}
+            onClick={() => handleCatChange(cat.category)}
+            className="text-[14px] cursor-pointer transition-colors duration-150 outline-none"
+            style={{
+              color: activeCat === cat.category ? "var(--page-text)" : "var(--page-text-muted)",
+              fontWeight: activeCat === cat.category ? 600 : 400,
+              opacity: activeCat === cat.category ? 1 : 0.5,
+            }}
+          >
+            {cat.category}
+          </button>
         ))}
       </div>
-    </>
+      <div className="rounded-2xl border border-[var(--outline)] overflow-hidden">
+        <div style={contentStyle}>
+          {activeProps.map((row, i) => (
+            <div
+              key={row.prop}
+              className={`flex items-center gap-3 px-4 py-2.5 ${i < activeProps.length - 1 ? "border-b border-[var(--outline)]" : ""}`}
+            >
+              <span className="font-mono text-[12px] font-medium text-[var(--page-text)] shrink-0 w-[120px]">
+                {row.prop}
+                {row.required && <span className="text-[var(--page-text-muted)] opacity-40 ml-0.5">*</span>}
+              </span>
+              <code className={`${CODE_CELL_CLASS} shrink-0`}>{row.type}</code>
+              <span className="text-[12px] text-[var(--page-text-muted)] ml-auto shrink-0">{row.desc}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
-/* ── Anchor Links ──────────────────────────────────── */
+/* ── Surface Nav (Top → Bottom morph) ─────────────── */
+
+const NAV_SURFACE = "border border-[var(--outline)] bg-[var(--surface)] backdrop-blur-xl";
+const NAV_SHADOW = "0 4px 24px rgba(0,0,0,0.06), 0 0 0 1px var(--outline)";
 
 const SECTIONS = [
   { id: "install", label: "Install" },
   { id: "usage", label: "Usage" },
-  { id: "playground", label: "Playground" },
   { id: "props", label: "Props" },
   { id: "tokens", label: "Tokens" },
 ] as const;
 
-function AnchorNav() {
+function GitHubIcon({ size = 15 }: { size?: number }) {
   return (
-    <nav className="flex items-center gap-4 select-none">
-      {SECTIONS.map((s) => (
-        <a
-          key={s.id}
-          href={`#${s.id}`}
-          className="text-[14px] transition-colors duration-150 outline-none"
-          style={{
-            color: "var(--page-text-muted)",
-            opacity: 0.5,
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.color = "var(--page-text)";
-            (e.currentTarget as HTMLElement).style.opacity = "1";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.color = "var(--page-text-muted)";
-            (e.currentTarget as HTMLElement).style.opacity = "0.5";
-          }}
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+    </svg>
+  );
+}
+
+function SurfaceNav() {
+  const [activeSection, setActiveSection] = useState<string>("");
+  const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
+  const [pillStyle, setPillStyle] = useState<{ left: number; width: number } | null>(null);
+  const { resolvedTheme, setTheme } = useTheme();
+
+  // Smooth scroll handler
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  // Update sliding pill position when active section changes
+  useEffect(() => {
+    const link = linkRefs.current[activeSection];
+    if (!link) { setPillStyle(null); return; }
+    const parent = link.parentElement;
+    if (!parent) return;
+    const parentRect = parent.getBoundingClientRect();
+    const linkRect = link.getBoundingClientRect();
+    setPillStyle({
+      left: linkRect.left - parentRect.left,
+      width: linkRect.width,
+    });
+  }, [activeSection]);
+
+  // Track active section
+  useEffect(() => {
+    const ids = SECTIONS.map((s) => s.id);
+    const elements = ids.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    if (!elements.length) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        }
+      },
+      { rootMargin: "-40% 0px -50% 0px" }
+    );
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  const themeButton = (
+    <button
+      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+      className={`flex size-8 items-center justify-center rounded-full text-[var(--page-text)] cursor-pointer transition-[background-color,scale] duration-200 hover:bg-[color-mix(in_srgb,var(--on-surface-muted)_12%,transparent)] active:scale-[0.97]`}
+      aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
+    >
+      <svg
+        width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+        className="absolute"
+        style={{
+          opacity: resolvedTheme === "dark" ? 1 : 0,
+          transform: resolvedTheme === "dark" ? "scale(1) rotate(0deg)" : "scale(0.25) rotate(-180deg)",
+          filter: resolvedTheme === "dark" ? "blur(0px)" : "blur(4px)",
+          transition: "opacity 400ms cubic-bezier(0.16, 1, 0.3, 1), transform 400ms cubic-bezier(0.16, 1, 0.3, 1), filter 400ms cubic-bezier(0.16, 1, 0.3, 1)",
+        }}
+      >
+        <circle cx="12" cy="12" r="5" />
+        <line x1="12" y1="1" x2="12" y2="3" />
+        <line x1="12" y1="21" x2="12" y2="23" />
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+        <line x1="1" y1="12" x2="3" y2="12" />
+        <line x1="21" y1="12" x2="23" y2="12" />
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+      </svg>
+      <svg
+        width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+        className="absolute"
+        style={{
+          opacity: resolvedTheme === "light" ? 1 : 0,
+          transform: resolvedTheme === "light" ? "scale(1) rotate(0deg)" : "scale(0.25) rotate(180deg)",
+          filter: resolvedTheme === "light" ? "blur(0px)" : "blur(4px)",
+          transition: "opacity 400ms cubic-bezier(0.16, 1, 0.3, 1), transform 400ms cubic-bezier(0.16, 1, 0.3, 1), filter 400ms cubic-bezier(0.16, 1, 0.3, 1)",
+        }}
+      >
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+      </svg>
+    </button>
+  );
+
+  const githubLink = (
+    <a
+      href="https://github.com/sethihq/scrub-slider"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex size-8 items-center justify-center rounded-full text-[var(--page-text)] transition-[background-color,scale] duration-200 hover:bg-[color-mix(in_srgb,var(--on-surface-muted)_12%,transparent)] active:scale-[0.97] cursor-pointer"
+    >
+      <GitHubIcon size={14} />
+    </a>
+  );
+
+  return (
+    <>
+      {/* ─── Bottom Floating Nav — two pills ─── */}
+      <div className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 flex items-center gap-2 select-none">
+        {/* Left pill — section navigation */}
+        <nav
+          className={`flex items-center gap-0.5 rounded-full ${NAV_SURFACE} px-1.5 py-1.5`}
+          style={{ boxShadow: NAV_SHADOW }}
         >
-          {s.label}
-        </a>
-      ))}
-    </nav>
+          <div className="relative flex items-center gap-0.5">
+            {pillStyle && (
+              <div
+                className="absolute rounded-full pointer-events-none"
+                style={{
+                  backgroundColor: "color-mix(in srgb, var(--on-surface-muted) 12%, transparent)",
+                  left: pillStyle.left,
+                  width: pillStyle.width,
+                  top: 0,
+                  bottom: 0,
+                  transition: "left 300ms cubic-bezier(0.16, 1, 0.3, 1), width 300ms cubic-bezier(0.16, 1, 0.3, 1)",
+                }}
+              />
+            )}
+            {SECTIONS.map((s) => (
+              <a
+                key={s.id}
+                ref={(el) => { linkRefs.current[s.id] = el; }}
+                href={`#${s.id}`}
+                onClick={(e) => { e.preventDefault(); scrollTo(s.id); }}
+                className="relative z-[1] rounded-full px-3 py-1.5 text-[13px] font-medium transition-[color] duration-200 cursor-pointer outline-none border-none"
+                style={{
+                  color: activeSection === s.id ? "var(--page-text)" : "var(--page-text-muted)",
+                }}
+              >
+                {s.label}
+              </a>
+            ))}
+          </div>
+        </nav>
+
+        {/* Right pill — logo + GitHub + theme */}
+        <div
+          className={`flex items-center gap-0.5 rounded-full ${NAV_SURFACE} px-1.5 py-1.5`}
+          style={{ boxShadow: NAV_SHADOW }}
+        >
+          <a
+            href="#"
+            onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+            className="flex items-center justify-center rounded-full px-2.5 py-1.5 text-[var(--page-text)] transition-[background-color] duration-200 hover:bg-[color-mix(in_srgb,var(--on-surface-muted)_12%,transparent)] outline-none border-none"
+            style={{ fontFamily: "'Reenie Beanie', cursive", fontSize: "24px", lineHeight: 1 }}
+          >
+            ss
+          </a>
+          <div className="w-px h-4 bg-[var(--outline)] mx-0.5" />
+          {githubLink}
+          {themeButton}
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -622,7 +810,6 @@ function AnchorNav() {
 
 export default function Page() {
   const [frequency, setFrequency] = useState(0.65);
-  const [playgroundFrequency, setPlaygroundFrequency] = useState(0.65);
   const [enableSound, setEnableSound] = useState(true);
   const [enableHaptics, setEnableHaptics] = useState(true);
   const [chipPosition, setChipPosition] = useState<"top" | "bottom">("top");
@@ -632,80 +819,50 @@ export default function Page() {
 
   return (
     <div className="min-h-screen bg-[var(--page)]">
+      {/* Logo + tagline — top center */}
+      <div className="pt-12 pb-4 text-center select-none">
+        <h1
+          className="text-[var(--page-text)]"
+          style={{ fontFamily: "'Reenie Beanie', cursive", fontSize: "36px", lineHeight: 1, letterSpacing: "-0.02em" }}
+        >
+          scrub slider
+        </h1>
+        <p className="text-[13px] text-[var(--page-text-muted)] mt-2 leading-relaxed">
+          A slider with scrub sounds<br />and haptic feedback.
+        </p>
+      </div>
+
       {/* Single narrow column */}
-      <div className="mx-auto max-w-[620px] px-6">
+      <div className="mx-auto max-w-[520px] px-6">
 
-        {/* Nav */}
-        <nav className="flex items-center justify-between py-5">
-          <span
-            className="text-[var(--page-text)] select-none"
-            style={{ fontFamily: "'Reenie Beanie', cursive", fontSize: "28px", lineHeight: 1 }}
-          >
-            scrub slider
-          </span>
-          <div className="flex items-center gap-3">
-            <a
-              href="https://github.com/sethihq/scrub-slider"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex size-9 items-center justify-center rounded-full border border-[var(--toolbar-border)] bg-[var(--surface)] text-[var(--page-text)] transition-[background-color,border-color,color,scale] duration-200 hover:bg-[var(--outline)] active:scale-[0.97] cursor-pointer"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-              </svg>
-            </a>
-            <ThemeToggle />
-          </div>
-        </nav>
+        <SurfaceNav />
 
-        {/* Hero -- slider with default props, no params visible */}
-        <section className="relative pt-16 pb-12">
-          <p className="text-[15px] text-[var(--page-text-muted)] text-center mb-12 text-pretty select-none">
-            A slider with scrub sounds and haptic feedback
-          </p>
-          <div className="flex justify-center">
-            <div className="w-full max-w-[320px]">
+        {/* Hero — interactive playground */}
+        <section id="playground" className="relative pb-12 scroll-mt-8">
+          <div>
+            <div className="w-full space-y-10">
               <Slider
                 label="Frequency"
-                value={frequency}
+                value={Math.min(Math.max(frequency, sliderMin), sliderMax)}
                 onValueChange={setFrequency}
-                min={0}
-                max={1}
-                step={0.01}
-                enableSound={true}
-                enableHaptics={true}
-                chipPosition="top"
+                min={sliderMin}
+                max={sliderMax}
+                step={sliderStep}
+                enableSound={enableSound}
+                enableHaptics={enableHaptics}
+                chipPosition={chipPosition}
               />
+              <div className="rounded-2xl border border-[var(--outline)] px-4 divide-y divide-[var(--outline)]">
+                <Toggle label="Sound" checked={enableSound} onChange={setEnableSound} />
+                <Toggle label="Haptics" checked={enableHaptics} onChange={setEnableHaptics} />
+                <SegmentedControl label="Chip" options={["top", "bottom"]} value={chipPosition} onChange={(v) => setChipPosition(v as "top" | "bottom")} />
+                <NumberInput label="Min" value={sliderMin} onChange={setSliderMin} min={-1000} max={sliderMax - sliderStep} inputStep={0.1} />
+                <NumberInput label="Max" value={sliderMax} onChange={setSliderMax} min={sliderMin + sliderStep} max={10000} inputStep={0.1} />
+                <NumberInput label="Step" value={sliderStep} onChange={setSliderStep} min={0.001} max={sliderMax - sliderMin} inputStep={0.001} />
+              </div>
             </div>
           </div>
         </section>
-
-        {/* Features */}
-        <section className="pb-10">
-          <ul className="space-y-1.5 text-[13px] text-[var(--page-text-muted)]">
-            <li className="flex items-start gap-2">
-              <span className="mt-[7px] block h-[3px] w-[3px] shrink-0 rounded-full bg-[var(--page-text-muted)] opacity-40" />
-              Scrub sounds via Web Audio API
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-[7px] block h-[3px] w-[3px] shrink-0 rounded-full bg-[var(--page-text-muted)] opacity-40" />
-              Haptic feedback via web-haptics
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-[7px] block h-[3px] w-[3px] shrink-0 rounded-full bg-[var(--page-text-muted)] opacity-40" />
-              Animated value display with NumberFlow
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-[7px] block h-[3px] w-[3px] shrink-0 rounded-full bg-[var(--page-text-muted)] opacity-40" />
-              Fully themeable with CSS custom properties
-            </li>
-          </ul>
-        </section>
-
-        {/* Anchor links */}
-        <div className="pb-12">
-          <AnchorNav />
-        </div>
 
         {/* Install */}
         <section id="install" className="pb-16 scroll-mt-8">
@@ -728,43 +885,8 @@ export default function Page() {
             sliderStep={sliderStep}
           />
           <p className="mt-4 text-[13px] text-[var(--page-text-muted)] leading-relaxed">
-            Updates live as you change parameters in the playground below.
+            Updates live as you change parameters above.
           </p>
-        </section>
-
-        {/* Playground -- slider + params inline */}
-        <section id="playground" className="pb-16 scroll-mt-8">
-          <h2 className="text-[15px] font-semibold text-[var(--page-text)] mb-4 select-none">Playground</h2>
-          <div className="flex flex-col sm:flex-row gap-8 items-start">
-            {/* Slider */}
-            <div className="w-full sm:flex-1 flex justify-center pt-4">
-              <div className="w-full max-w-[320px]">
-                <Slider
-                  label="Frequency"
-                  value={Math.min(Math.max(playgroundFrequency, sliderMin), sliderMax)}
-                  onValueChange={setPlaygroundFrequency}
-                  min={sliderMin}
-                  max={sliderMax}
-                  step={sliderStep}
-                  enableSound={enableSound}
-                  enableHaptics={enableHaptics}
-                  chipPosition={chipPosition}
-                />
-              </div>
-            </div>
-            {/* Params */}
-            <div className="w-full sm:w-[220px] sm:shrink-0">
-              <h3 className="text-[12px] font-medium tracking-wider uppercase text-[var(--page-text-muted)] opacity-50 mb-3">Parameters</h3>
-              <div className="rounded-2xl border border-[var(--outline)] px-4 divide-y divide-[var(--outline)]">
-                <Toggle label="Sound" checked={enableSound} onChange={setEnableSound} />
-                <Toggle label="Haptics" checked={enableHaptics} onChange={setEnableHaptics} />
-                <SegmentedControl label="Chip" options={["top", "bottom"]} value={chipPosition} onChange={(v) => setChipPosition(v as "top" | "bottom")} />
-                <NumberInput label="Min" value={sliderMin} onChange={setSliderMin} min={-1000} max={sliderMax - sliderStep} inputStep={0.1} />
-                <NumberInput label="Max" value={sliderMax} onChange={setSliderMax} min={sliderMin + sliderStep} max={10000} inputStep={0.1} />
-                <NumberInput label="Step" value={sliderStep} onChange={setSliderStep} min={0.001} max={sliderMax - sliderMin} inputStep={0.001} />
-              </div>
-            </div>
-          </div>
         </section>
 
         {/* Props */}
@@ -790,12 +912,7 @@ export default function Page() {
         </section>
 
         {/* Footer */}
-        <footer className="flex flex-col items-center gap-3 pb-10 text-[13px] text-[var(--page-text-muted)]">
-          <span>
-            Built with <a href="https://claude.ai/code" target="_blank" rel="noopener noreferrer" className="text-[var(--page-text)] hover:underline">Claude Code</a>
-            {" \u00B7 "}
-            Tuned with <a href="https://x.com/joshpuckett/status/2024141004685656447" target="_blank" rel="noopener noreferrer" className="text-[var(--page-text)] hover:underline">DialKit</a>
-          </span>
+        <footer className="flex flex-col items-center gap-3 pb-20 text-[13px] text-[var(--page-text-muted)]">
           <MadeWithLove />
         </footer>
 

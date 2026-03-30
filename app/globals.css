@@ -112,17 +112,25 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Hide focus ring for mouse/touch — preserve for keyboard */
-*:focus:not(:focus-visible) {
+*:focus,
+*:focus-visible,
+*:focus-within {
   outline: none !important;
+  outline-color: transparent !important;
+  outline-width: 0 !important;
   box-shadow: none !important;
+  --tw-ring-shadow: none !important;
+  --tw-ring-color: transparent !important;
+  --tw-ring-opacity: 0 !important;
 }
 
-/* Subtle focus ring for keyboard navigation */
-*:focus-visible {
-  outline: 2px solid var(--on-surface-muted);
-  outline-offset: 2px;
-  border-radius: inherit;
+/* Hide all scrollbars */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  display: none;
 }
 
 button, a {

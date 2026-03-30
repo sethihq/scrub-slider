@@ -1,16 +1,14 @@
 # scrub-slider
 
-A slider component with scrub sounds and haptic feedback. Built with Radix UI primitives, NumberFlow for animated values, Web Audio API for sound, and web-haptics for tactile feedback.
+A slider with scrub sounds and haptic feedback.
 
-[Live Demo](https://scrub-slider.vercel.app/) · [GitHub](https://github.com/sethihq/scrub-slider)
+[Live Demo](https://scrub-slider.vercel.app) · [npm](https://www.npmjs.com/package/@sethihq/scrub-slider)
 
-## Features
+## Install
 
-- Hover value chip with animated number transitions
-- Velocity-sensitive scrub sounds via Web Audio API
-- Haptic feedback on value commit (mobile)
-- Dark/light mode with smooth View Transition crossfade
-- Optional sound and haptics via props
+```bash
+npm i @sethihq/scrub-slider
+```
 
 ## Usage
 
@@ -29,32 +27,44 @@ import { Slider } from "@/components/ui/slider";
 
 ## Props
 
+### Core
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `value` | `number` | Current value |
+| `onValueChange` | `(v: number) => void` | Change handler |
+| `min` | `number` | Minimum value |
+| `max` | `number` | Maximum value |
+| `step` | `number` | Step increment |
+
+### Display
+
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `value` | `number` | — | Current value |
-| `onValueChange` | `(value: number) => void` | — | Change handler |
-| `min` | `number` | — | Minimum value |
-| `max` | `number` | — | Maximum value |
-| `step` | `number` | — | Step increment |
 | `label` | `string` | — | Label text |
 | `unit` | `string` | — | Unit suffix (e.g. "%") |
 | `chipPosition` | `"top" \| "bottom"` | `"top"` | Hover chip position |
-| `enableSound` | `boolean` | `true` | Enable scrub sounds |
-| `enableHaptics` | `boolean` | `true` | Enable haptic feedback |
+
+### Feedback
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `enableSound` | `boolean` | `true` | Scrub sounds |
+| `enableHaptics` | `boolean` | `true` | Haptic feedback |
 
 ## CSS Tokens
 
-The slider reads these CSS custom properties:
+```css
+:root {
+  --surface: #ffffff;       /* Track background */
+  --on-surface: #0a0a0a;   /* Thumb indicator */
+  --on-surface-muted: #737373; /* Label, fills */
+  --outline: #e5e5e5;      /* Track border */
+  --chip: #a3a3a3;         /* Hover chip bg */
+  --on-chip: #fafafa;      /* Hover chip text */
+}
+```
 
-| Token | Description |
-|-------|-------------|
-| `--surface` | Track background |
-| `--on-surface` | Thumb indicator |
-| `--on-surface-muted` | Label text, hover/value fills |
-| `--outline` | Track border |
-| `--chip` | Hover chip background |
-| `--on-chip` | Hover chip text |
+## License
 
-## Credits
-
-Built with [Claude Code](https://claude.ai/code). Parameters tuned live with [DialKit](https://x.com/joshpuckett/status/2024141004685656447).
+MIT

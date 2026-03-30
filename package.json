@@ -1,5 +1,5 @@
 {
-  "name": "scrub-slider",
+  "name": "@sethihq/scrub-slider",
   "version": "0.1.0",
   "description": "A slider component with scrub sounds and haptic feedback",
   "author": "sethihq",
@@ -18,9 +18,39 @@
     "web-audio",
     "component"
   ],
+  "main": "./dist/slider.js",
+  "module": "./dist/slider.js",
+  "types": "./dist/slider.d.mts",
+  "exports": {
+    "./slider": {
+      "import": "./dist/slider.js",
+      "types": "./dist/slider.d.mts"
+    },
+    "./use-haptics": {
+      "import": "./dist/use-haptics.js",
+      "types": "./dist/use-haptics.d.mts"
+    },
+    "./use-sound": {
+      "import": "./dist/use-sound.js",
+      "types": "./dist/use-sound.d.mts"
+    },
+    "./utils": {
+      "import": "./dist/utils.js",
+      "types": "./dist/utils.d.mts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:pkg": "tsup",
     "start": "next start"
   },
   "dependencies": {
@@ -35,12 +65,22 @@
     "tailwind-merge": "^3.0.0",
     "web-haptics": "^0.0.6"
   },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18",
+    "@radix-ui/react-slider": ">=1.0.0",
+    "@number-flow/react": ">=0.4.0",
+    "web-haptics": ">=0.0.5",
+    "clsx": ">=2.0.0",
+    "tailwind-merge": ">=2.0.0"
+  },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "tailwindcss": "^4.0.0",
+    "tsup": "^8.5.1",
     "typescript": "^5.0.0"
   }
 }
