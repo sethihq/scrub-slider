@@ -15,11 +15,20 @@ export const metadata: Metadata = {
     url: "https://scrub-slider.vercel.app",
     siteName: "scrub-slider",
     type: "website",
+    images: [
+      {
+        url: "https://scrub-slider.vercel.app/og.png",
+        width: 1200,
+        height: 630,
+        alt: "scrub slider — A slider with scrub sounds and haptic feedback.",
+      },
+    ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "scrub-slider",
     description: "A slider component with scrub sounds and haptic feedback.",
+    images: ["https://scrub-slider.vercel.app/og.png"],
   },
 };
 
