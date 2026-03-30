@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { Calligraph } from "calligraph";
 import { Slider } from "@/components/ui/slider";
 import { useTheme } from "@/hooks/use-theme";
 import { MadeWithLove } from "@/components/made-with-love";
@@ -276,56 +277,7 @@ const INSTALL_PREFIXES: Record<(typeof PKG_MANAGERS)[number], string> = {
 
 function InstallBlock() {
   const [pm, setPm] = useState<(typeof PKG_MANAGERS)[number]>("npm");
-  const [displayedPm, setDisplayedPm] = useState(pm);
-  const [phase, setPhase] = useState<"idle" | "out" | "in">("idle");
-  const [direction, setDirection] = useState(1);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-
-  const handlePmChange = (newPm: (typeof PKG_MANAGERS)[number]) => {
-    if (newPm === pm) return;
-    const oldIndex = PKG_MANAGERS.indexOf(pm);
-    const newIndex = PKG_MANAGERS.indexOf(newPm);
-    setDirection(newIndex > oldIndex ? 1 : -1);
-    setPm(newPm);
-    // Phase 1: slide old text out
-    setPhase("out");
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      // Phase 2: swap text, slide new text in
-      setDisplayedPm(newPm);
-      setPhase("in");
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setPhase("idle"));
-      });
-    }, 140);
-  };
-
   const fullCommand = `${INSTALL_PREFIXES[pm]} ${PKG}`;
-  const ease = "cubic-bezier(0.16, 1, 0.3, 1)";
-
-  // Exit: slide out in the direction of movement
-  // Enter: start offset from the opposite side, slide to 0
-  const prefixStyle: React.CSSProperties =
-    phase === "out"
-      ? {
-          opacity: 0,
-          transform: `translateX(${-direction * 16}px)`,
-          filter: "blur(3px)",
-          transition: `opacity 120ms ease-in, transform 140ms ease-in, filter 120ms ease-in`,
-        }
-      : phase === "in"
-        ? {
-            opacity: 0,
-            transform: `translateX(${direction * 16}px)`,
-            filter: "blur(3px)",
-            transition: "none",
-          }
-        : {
-            opacity: 1,
-            transform: "translateX(0)",
-            filter: "blur(0px)",
-            transition: `opacity 220ms ${ease}, transform 260ms ${ease}, filter 220ms ${ease}`,
-          };
 
   return (
     <div>
@@ -333,7 +285,7 @@ function InstallBlock() {
         {PKG_MANAGERS.map((p) => (
           <button
             key={p}
-            onClick={() => handlePmChange(p)}
+            onClick={() => setPm(p)}
             className="text-[14px] min-h-[40px] cursor-pointer transition-[color,opacity,transform] duration-150 outline-none hover:opacity-70 active:scale-[0.96]"
             style={{
               color: pm === p ? "var(--page-text)" : "var(--page-text-muted)",
@@ -350,9 +302,9 @@ function InstallBlock() {
           <pre className="text-[13px] font-mono text-[var(--page-text)] overflow-x-auto">
             <code>
               <span className="text-[var(--page-text-muted)]">$ </span>
-              <span className="inline-block" style={prefixStyle}>
-                {INSTALL_PREFIXES[displayedPm]}
-              </span>
+              <Calligraph animation="smooth">
+                {INSTALL_PREFIXES[pm]}
+              </Calligraph>
               <span> {PKG}</span>
             </code>
           </pre>
