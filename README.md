@@ -1,8 +1,16 @@
-# scrub-slider
+<p align="center">
+  <img src="https://scrub-slider.vercel.app/og.png" alt="scrub-slider" width="600" />
+</p>
 
-A slider with scrub sounds and haptic feedback.
+<h3 align="center">scrub-slider</h3>
+<p align="center">A slider with scrub sounds and haptic feedback.</p>
 
-[Live Demo](https://scrub-slider.vercel.app) · [npm](https://www.npmjs.com/package/@sethihq/scrub-slider)
+<p align="center">
+  <a href="https://scrub-slider.vercel.app">Demo</a> ·
+  <a href="https://www.npmjs.com/package/@sethihq/scrub-slider">npm</a>
+</p>
+
+---
 
 ## Install
 
@@ -27,7 +35,7 @@ import { Slider } from "@/components/ui/slider";
 
 ## Props
 
-### Core
+#### Core
 
 | Prop | Type | Description |
 |------|------|-------------|
@@ -37,31 +45,31 @@ import { Slider } from "@/components/ui/slider";
 | `max` | `number` | Maximum value |
 | `step` | `number` | Step increment |
 
-### Display
+#### Display
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `label` | `string` | — | Label text |
-| `unit` | `string` | — | Unit suffix (e.g. "%") |
+| `unit` | `string` | — | Unit suffix (e.g. `%`) |
 | `chipPosition` | `"top" \| "bottom"` | `"top"` | Hover chip position |
 
-### Feedback
+#### Feedback
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `enableSound` | `boolean` | `true` | Scrub sounds |
 | `enableHaptics` | `boolean` | `true` | Haptic feedback |
 
-## CSS Tokens
+## Tokens
 
 ```css
 :root {
-  --surface: #ffffff;       /* Track background */
-  --on-surface: #0a0a0a;   /* Thumb indicator */
-  --on-surface-muted: #737373; /* Label, fills */
-  --outline: #e5e5e5;      /* Track border */
-  --chip: #a3a3a3;         /* Hover chip bg */
-  --on-chip: #fafafa;      /* Hover chip text */
+  --surface: #ffffff;
+  --on-surface: #0a0a0a;
+  --on-surface-muted: #737373;
+  --outline: #e5e5e5;
+  --chip: #a3a3a3;
+  --on-chip: #fafafa;
 }
 ```
 
