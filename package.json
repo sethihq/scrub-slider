@@ -54,7 +54,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:pkg": "tsup && rm -rf dist/components dist/hooks dist/lib",
+    "build:pkg": "tsup",
     "start": "next start"
   },
   "peerDependencies": {
