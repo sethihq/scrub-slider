@@ -7,10 +7,10 @@ export function MadeWithLove() {
   const [hovered, setHovered] = useState(false);
 
   return (
-    <div className="fixed bottom-4 left-5 z-[5] font-sans pointer-events-auto">
+    <div className="relative font-sans pointer-events-auto">
       {/* Clawd — positioned absolutely, outside any overflow-hidden wrapper */}
       <div
-        className="absolute transition-all duration-300 pointer-events-none"
+        className="absolute transition-[opacity,transform] duration-300 pointer-events-none"
         style={{
           right: -50,
           bottom: -2,
@@ -32,14 +32,9 @@ export function MadeWithLove() {
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 rounded-full pl-1 pr-2.5 py-0.5 -my-0.5 text-[var(--page-text-muted)] transition-[background-color,color] duration-200 ease-[var(--ease-out-quart)]"
-          onMouseEnter={(e) => {
-            setHovered(true);
-            e.currentTarget.style.backgroundColor = "var(--toolbar-border)";
-          }}
-          onMouseLeave={(e) => {
-            setHovered(false);
-            e.currentTarget.style.backgroundColor = "transparent";
-          }}
+          style={{ backgroundColor: hovered ? "var(--toolbar-border)" : "transparent" }}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
         >
           <img
             src="https://unavatar.io/x/sethihq"
@@ -52,7 +47,7 @@ export function MadeWithLove() {
 
         {/* "+" appears next to pill on hover */}
         <span
-          className="inline-flex items-center overflow-hidden transition-all duration-300"
+          className="inline-flex items-center overflow-hidden transition-[max-width,opacity] duration-300"
           style={{
             maxWidth: hovered ? 20 : 0,
             opacity: hovered ? 1 : 0,

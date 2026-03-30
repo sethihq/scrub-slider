@@ -1,7 +1,23 @@
 {
   "name": "scrub-slider",
   "version": "0.1.0",
-  "private": true,
+  "description": "A slider component with scrub sounds and haptic feedback",
+  "author": "sethihq",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sethihq/scrub-slider"
+  },
+  "homepage": "https://scrub-slider.vercel.app",
+  "keywords": [
+    "slider",
+    "react",
+    "radix",
+    "haptics",
+    "sound",
+    "web-audio",
+    "component"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",

@@ -2,9 +2,41 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@font-face {
+  font-family: "Open Runde";
+  src: url("/fonts/OpenRunde-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Open Runde";
+  src: url("/fonts/OpenRunde-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Open Runde";
+  src: url("/fonts/OpenRunde-Semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Open Runde";
+  src: url("/fonts/OpenRunde-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme inline {
-  --font-sans: system-ui, -apple-system, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", monospace;
+  --font-sans: "Open Runde", system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", monospace;
 }
 
 /* Design tokens */
@@ -71,15 +103,42 @@
   100% { opacity: 1; filter: blur(0px); }
 }
 
-body {
+html, body {
   font-family: var(--font-sans);
+  background-color: var(--page);
 }
 
-:where(:focus-visible),
-:where(:focus) {
-  outline: 2px solid transparent !important;
-  outline-offset: -2px !important;
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hide focus ring for mouse/touch — preserve for keyboard */
+*:focus:not(:focus-visible) {
+  outline: none !important;
   box-shadow: none !important;
+}
+
+/* Subtle focus ring for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--on-surface-muted);
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+
+button, a {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Hide number input spinners */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -179,7 +179,7 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(
             <SliderPrimitive.Range className="absolute h-full opacity-0" />
             {/* Thumb indicator — lives inside track so it clips at boundaries */}
             <div
-              className="pointer-events-none absolute top-1/2 h-4 w-1 -translate-y-1/2 rounded-full"
+              className="pointer-events-none absolute top-1/2 h-4 w-1.5 -translate-y-1/2 rounded-full"
               style={{
                 backgroundColor: "color-mix(in srgb, var(--on-surface) 50%, transparent)",
                 left: `calc(12px + (100% - 24px) * ${pct / 100})`,
@@ -189,7 +189,7 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(
           </SliderPrimitive.Track>
           {/* Invisible Radix thumb — handles drag + a11y */}
           <SliderPrimitive.Thumb
-            className="block h-8 w-5 cursor-ew-resize opacity-0"
+            className="block h-8 w-6 cursor-ew-resize opacity-0 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--on-surface-muted)] focus-visible:rounded-full"
             aria-label={label}
           />
         </SliderPrimitive.Root>

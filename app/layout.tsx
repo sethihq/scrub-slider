@@ -5,7 +5,22 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "scrub-slider",
-  description: "A slider component with scrub sounds and haptic feedback.",
+  description: "A slider component with scrub sounds and haptic feedback. Built with Radix UI, NumberFlow, Web Audio API, and web-haptics.",
+  icons: {
+    icon: "/favicon.svg",
+  },
+  openGraph: {
+    title: "scrub-slider",
+    description: "A slider component with scrub sounds and haptic feedback.",
+    url: "https://scrub-slider.vercel.app",
+    siteName: "scrub-slider",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "scrub-slider",
+    description: "A slider component with scrub sounds and haptic feedback.",
+  },
 };
 
 export default function RootLayout({
@@ -16,6 +31,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Reenie+Beanie&display=swap" rel="stylesheet" />
         <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem("scrub-slider-theme");var d=t==="light"?"light":t==="system"?window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light":"dark";if(d==="dark")document.documentElement.classList.add("dark");else document.documentElement.classList.remove("dark")}catch(e){}})()` }} />
       </head>
       <body className="min-h-screen font-sans">
