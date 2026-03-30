@@ -1,0 +1,25 @@
+import type { Metadata } from "next";
+import { ThemeProvider } from "@/hooks/use-theme";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: "scrub-slider",
+  description: "A slider component with scrub sounds and haptic feedback.",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem("scrub-slider-theme");var d=t==="light"?"light":t==="system"?window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light":"dark";if(d==="dark")document.documentElement.classList.add("dark");else document.documentElement.classList.remove("dark")}catch(e){}})()` }} />
+      </head>
+      <body className="min-h-screen font-sans">
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
+    </html>
+  );
+}
