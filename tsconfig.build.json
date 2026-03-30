@@ -14,13 +14,13 @@
     "declaration": true,
     "declarationMap": true,
     "emitDeclarationOnly": true,
-    "paths": { "@/*": ["./*"] }
+    "paths": { "@/*": ["./src/*"] }
   },
   "include": [
-    "components/**/*.ts",
-    "components/**/*.tsx",
-    "hooks/**/*.ts",
-    "lib/**/*.ts"
+    "src/components/**/*.ts",
+    "src/components/**/*.tsx",
+    "src/hooks/**/*.ts",
+    "src/lib/**/*.ts"
   ],
-  "exclude": ["node_modules", ".next", "app"]
+  "exclude": ["node_modules", ".next", "src/app"]
 }

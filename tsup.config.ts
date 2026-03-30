@@ -3,10 +3,10 @@ import path from "path";
 
 export default defineConfig({
   entry: {
-    slider: "components/ui/slider.tsx",
-    "use-haptics": "hooks/use-haptics.ts",
-    "use-sound": "hooks/use-sound.ts",
-    utils: "lib/utils.ts",
+    slider: "src/components/ui/slider.tsx",
+    "use-haptics": "src/hooks/use-haptics.ts",
+    "use-sound": "src/hooks/use-sound.ts",
+    utils: "src/lib/utils.ts",
   },
   format: ["esm"],
   tsconfig: "tsconfig.build.json",
@@ -30,7 +30,7 @@ export default defineConfig({
   },
   esbuildOptions(options) {
     options.alias = {
-      "@": path.resolve(__dirname, "."),
+      "@": path.resolve(__dirname, "src"),
     };
   },
 });
