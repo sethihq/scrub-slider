@@ -2,7 +2,7 @@
 
 A slider component with scrub sounds and haptic feedback. Built with Radix UI primitives, NumberFlow for animated values, Web Audio API for sound, and web-haptics for tactile feedback.
 
-[Live Demo](https://scrub-slider.vercel.app) · [GitHub](https://github.com/sethihq/scrub-slider)
+[Live Demo](https://scrub-slider.vercel.app/) · [GitHub](https://github.com/sethihq/scrub-slider)
 
 ## Features
 
