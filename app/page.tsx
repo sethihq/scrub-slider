@@ -302,7 +302,7 @@ function InstallBlock() {
           <pre className="text-[13px] font-mono text-[var(--page-text)] overflow-x-auto">
             <code>
               <span className="text-[var(--page-text-muted)]">$ </span>
-              <Calligraph animation="smooth">
+              <Calligraph animation="smooth" drift={{ x: 8, y: 0 }} stagger={0.03}>
                 {INSTALL_PREFIXES[pm]}
               </Calligraph>
               <span> {PKG}</span>
