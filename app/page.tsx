@@ -205,7 +205,7 @@ function DraggablePanel({ children }: { children: React.ReactNode }) {
     >
       {/* Six-dot drag handle */}
       <div
-        className="absolute -left-6 top-1/2 -translate-y-1/2 flex flex-col gap-[3px] transition-opacity duration-200"
+        className="absolute -left-6 top-1/2 -translate-y-1/2 hidden sm:flex flex-col gap-[3px] transition-opacity duration-200"
         style={{ opacity: isDragging ? 0.6 : 0.25 }}
       >
         {[0, 1, 2].map((i) => (
@@ -329,7 +329,7 @@ function InstallBlock() {
 
   return (
     <div>
-      <div className="flex items-center gap-4 mb-4 select-none">
+      <div className="flex items-center gap-2 sm:gap-4 mb-4 select-none">
         {PKG_MANAGERS.map((p) => (
           <button
             key={p}
@@ -491,7 +491,7 @@ const frequency = ref(0.65);
 
   return (
     <div>
-      <div className="flex items-center gap-5 mb-4 select-none">
+      <div className="flex items-center gap-3 sm:gap-5 mb-4 select-none">
         {FRAMEWORKS.map((f) => (
           <button
             key={f}
@@ -629,14 +629,16 @@ function PropsTable() {
           {activeProps.map((row, i) => (
             <div
               key={row.prop}
-              className={`flex items-center gap-3 px-4 py-2.5 ${i < activeProps.length - 1 ? "border-b border-[var(--outline)]" : ""}`}
+              className={`flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3 px-4 py-2.5 ${i < activeProps.length - 1 ? "border-b border-[var(--outline)]" : ""}`}
             >
-              <span className="font-mono text-[12px] font-medium text-[var(--page-text)] shrink-0 w-[120px]">
+              <span className="font-mono text-[12px] font-medium text-[var(--page-text)] shrink-0 sm:w-[120px]">
                 {row.prop}
                 {row.required && <span className="text-[var(--page-text-muted)] opacity-40 ml-0.5">*</span>}
               </span>
-              <code className={`${CODE_CELL_CLASS} shrink-0`}>{row.type}</code>
-              <span className="text-[12px] text-[var(--page-text-muted)] ml-auto shrink-0">{row.desc}</span>
+              <div className="flex items-center gap-2 sm:contents">
+                <code className={`${CODE_CELL_CLASS} shrink-0`}>{row.type}</code>
+                <span className="text-[12px] text-[var(--page-text-muted)] sm:ml-auto shrink-0">{row.desc}</span>
+              </div>
             </div>
           ))}
         </div>
@@ -765,10 +767,10 @@ function SurfaceNav() {
   return (
     <>
       {/* ─── Bottom Floating Nav — two pills ─── */}
-      <div className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 flex items-center gap-2 select-none">
+      <div className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 flex items-center gap-1.5 sm:gap-2 select-none">
         {/* Left pill — section navigation */}
         <nav
-          className={`flex items-center gap-0.5 rounded-full ${NAV_SURFACE} px-1.5 py-1.5`}
+          className={`flex items-center gap-0.5 rounded-full ${NAV_SURFACE} px-1 sm:px-1.5 py-1.5`}
           style={{ boxShadow: NAV_SHADOW }}
         >
           <div className="relative flex items-center gap-0.5">
@@ -791,7 +793,7 @@ function SurfaceNav() {
                 ref={(el) => { linkRefs.current[s.id] = el; }}
                 href={`#${s.id}`}
                 onClick={(e) => { e.preventDefault(); scrollTo(s.id); }}
-                className="relative z-[1] rounded-full px-3 py-1.5 text-[13px] font-medium transition-[color,transform] duration-200 cursor-pointer outline-none border-none active:scale-[0.96]"
+                className="relative z-[1] rounded-full px-2 sm:px-3 py-1.5 text-[12px] sm:text-[13px] font-medium transition-[color,transform] duration-200 cursor-pointer outline-none border-none active:scale-[0.96]"
                 style={{
                   color: activeSection === s.id ? "var(--page-text)" : "var(--page-text-muted)",
                 }}
@@ -851,7 +853,7 @@ export default function Page() {
       `}</style>
 
       {/* Logo + tagline — top center */}
-      <div className="pt-12 pb-4 text-center select-none" style={entranceStyle(0)}>
+      <div className="pt-8 sm:pt-12 pb-4 text-center select-none" style={entranceStyle(0)}>
         <h1
           className="text-[var(--page-text)] text-wrap-balance"
           style={{ fontFamily: "'Reenie Beanie', cursive", fontSize: "36px", lineHeight: 1, letterSpacing: "-0.02em" }}
