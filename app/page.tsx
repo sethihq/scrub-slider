@@ -5,6 +5,11 @@ import { Slider } from "@/components/ui/slider";
 import { useTheme } from "@/hooks/use-theme";
 import { MadeWithLove } from "@/components/made-with-love";
 
+/* ── Constants ────────────────────────────────────── */
+
+const SUCCESS_COLOR = "var(--success)";
+const STAGGER_BASE = 60; // ms between section entrance animations
+
 /* ── Parameter Controls ────────────────────────────── */
 
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
@@ -16,12 +21,12 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
       <span className="text-[13px] text-[var(--page-text-muted)]">{label}</span>
       <div
         className="relative w-9 h-[22px] rounded-full transition-colors duration-200 shrink-0"
-        style={{ backgroundColor: checked ? "var(--on-surface-muted)" : "var(--outline)" }}
+        style={{ backgroundColor: checked ? "color-mix(in srgb, var(--on-surface-muted) 50%, transparent)" : "var(--outline)" }}
       >
         <div
           className="absolute top-[3px] h-4 w-4 rounded-full transition-[transform,background-color] duration-200"
           style={{
-            backgroundColor: checked ? "var(--page-text)" : "var(--page-text-muted)",
+            backgroundColor: checked ? "var(--page-text-muted)" : "color-mix(in srgb, var(--page-text-muted) 50%, transparent)",
             transform: checked ? "translateX(17px)" : "translateX(3px)",
           }}
         />
@@ -32,26 +37,39 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
 
 function SegmentedControl({ label, options, value, onChange }: { label: string; options: string[]; value: string; onChange: (v: string) => void }) {
   const activeIndex = options.indexOf(value);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [pillStyle, setPillStyle] = useState<{ left: number; width: number } | null>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const btns = container.querySelectorAll<HTMLButtonElement>("button");
+    const btn = btns[activeIndex];
+    if (btn) {
+      setPillStyle({ left: btn.offsetLeft, width: btn.offsetWidth });
+    }
+  }, [activeIndex]);
 
   return (
     <div className="flex items-center justify-between w-full py-2.5 select-none">
       <span className="text-[13px] text-[var(--page-text-muted)]">{label}</span>
-      <div className="relative flex rounded-lg border border-[var(--outline)]">
-        {/* Sliding indicator */}
-        <div
-          className="absolute inset-y-0 rounded-[7px]"
-          style={{
-            backgroundColor: "var(--on-surface-muted)",
-            width: `${100 / options.length}%`,
-            left: `${(activeIndex * 100) / options.length}%`,
-            transition: "left 250ms cubic-bezier(0.16, 1, 0.3, 1)",
-          }}
-        />
+      <div ref={containerRef} className="relative flex rounded-full p-0.5" style={{ backgroundColor: "var(--outline)" }}>
+        {pillStyle && (
+          <div
+            className="absolute top-0.5 bottom-0.5 rounded-full"
+            style={{
+              backgroundColor: "color-mix(in srgb, var(--on-surface-muted) 60%, transparent)",
+              width: pillStyle.width,
+              left: pillStyle.left,
+              transition: "left 250ms cubic-bezier(0.16, 1, 0.3, 1), width 250ms cubic-bezier(0.16, 1, 0.3, 1)",
+            }}
+          />
+        )}
         {options.map((opt) => (
           <button
             key={opt}
             onClick={() => onChange(opt)}
-            className="relative z-[1] w-[52px] text-center py-1 text-[12px] font-medium cursor-pointer outline-none"
+            className="relative z-[1] text-center px-6 py-0.5 text-[12px] font-medium cursor-pointer outline-none rounded-full"
             style={{
               color: value === opt ? "var(--page)" : "var(--page-text-muted)",
               transition: "color 200ms ease-out",
@@ -104,7 +122,7 @@ function CopyButton({ text }: { text: string }) {
     >
       {/* "Copy" text */}
       <span
-        className="absolute inset-0 flex items-center justify-end"
+        className="absolute inset-0 flex items-center justify-center"
         style={{
           color: "var(--page-text-muted)",
           opacity: copied ? 0 : 1,
@@ -119,9 +137,9 @@ function CopyButton({ text }: { text: string }) {
       </span>
       {/* "Copied" text */}
       <span
-        className="absolute inset-0 flex items-center justify-end"
+        className="absolute inset-0 flex items-center justify-center"
         style={{
-          color: "#6bcf7f",
+          color: SUCCESS_COLOR,
           opacity: copied ? 1 : 0,
           transform: copied ? "translateY(0)" : "translateY(8px)",
           filter: copied ? "blur(0px)" : "blur(3px)",
@@ -316,7 +334,7 @@ function InstallBlock() {
           <button
             key={p}
             onClick={() => handlePmChange(p)}
-            className="text-[14px] cursor-pointer transition-colors duration-150 outline-none"
+            className="text-[14px] min-h-[40px] cursor-pointer transition-[color,opacity,transform] duration-150 outline-none hover:opacity-70 active:scale-[0.96]"
             style={{
               color: pm === p ? "var(--page-text)" : "var(--page-text-muted)",
               fontWeight: pm === p ? 600 : 400,
@@ -478,7 +496,7 @@ const frequency = ref(0.65);
           <button
             key={f}
             onClick={() => setFw(f)}
-            className="inline-flex items-center gap-1.5 text-[14px] cursor-pointer transition-colors duration-150 outline-none"
+            className="inline-flex items-center gap-1.5 text-[14px] min-h-[40px] cursor-pointer transition-[color,opacity,transform] duration-150 outline-none hover:opacity-70 active:scale-[0.96]"
             style={{
               color: fw === f ? "var(--page-text)" : "var(--page-text-muted)",
               fontWeight: fw === f ? 600 : 400,
@@ -595,7 +613,7 @@ function PropsTable() {
           <button
             key={cat.category}
             onClick={() => handleCatChange(cat.category)}
-            className="text-[14px] cursor-pointer transition-colors duration-150 outline-none"
+            className="text-[14px] min-h-[40px] cursor-pointer transition-[color,opacity,transform] duration-150 outline-none hover:opacity-70 active:scale-[0.96]"
             style={{
               color: activeCat === cat.category ? "var(--page-text)" : "var(--page-text-muted)",
               fontWeight: activeCat === cat.category ? 600 : 400,
@@ -695,7 +713,7 @@ function SurfaceNav() {
   const themeButton = (
     <button
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-      className={`flex size-8 items-center justify-center rounded-full text-[var(--page-text)] cursor-pointer transition-[background-color,scale] duration-200 hover:bg-[color-mix(in_srgb,var(--on-surface-muted)_12%,transparent)] active:scale-[0.97]`}
+      className={`flex size-8 items-center justify-center rounded-full text-[var(--page-text)] cursor-pointer transition-[background-color,transform] duration-200 hover:bg-[color-mix(in_srgb,var(--on-surface-muted)_12%,transparent)] active:scale-[0.96]`}
       aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
     >
       <svg
@@ -703,7 +721,7 @@ function SurfaceNav() {
         className="absolute"
         style={{
           opacity: resolvedTheme === "dark" ? 1 : 0,
-          transform: resolvedTheme === "dark" ? "scale(1) rotate(0deg)" : "scale(0.25) rotate(-180deg)",
+          transform: resolvedTheme === "dark" ? "scale(1) rotate(0deg)" : "scale(0.5) rotate(-90deg)",
           filter: resolvedTheme === "dark" ? "blur(0px)" : "blur(4px)",
           transition: "opacity 400ms cubic-bezier(0.16, 1, 0.3, 1), transform 400ms cubic-bezier(0.16, 1, 0.3, 1), filter 400ms cubic-bezier(0.16, 1, 0.3, 1)",
         }}
@@ -723,7 +741,7 @@ function SurfaceNav() {
         className="absolute"
         style={{
           opacity: resolvedTheme === "light" ? 1 : 0,
-          transform: resolvedTheme === "light" ? "scale(1) rotate(0deg)" : "scale(0.25) rotate(180deg)",
+          transform: resolvedTheme === "light" ? "scale(1) rotate(0deg)" : "scale(0.5) rotate(90deg)",
           filter: resolvedTheme === "light" ? "blur(0px)" : "blur(4px)",
           transition: "opacity 400ms cubic-bezier(0.16, 1, 0.3, 1), transform 400ms cubic-bezier(0.16, 1, 0.3, 1), filter 400ms cubic-bezier(0.16, 1, 0.3, 1)",
         }}
@@ -738,7 +756,7 @@ function SurfaceNav() {
       href="https://github.com/sethihq/scrub-slider"
       target="_blank"
       rel="noopener noreferrer"
-      className="flex size-8 items-center justify-center rounded-full text-[var(--page-text)] transition-[background-color,scale] duration-200 hover:bg-[color-mix(in_srgb,var(--on-surface-muted)_12%,transparent)] active:scale-[0.97] cursor-pointer"
+      className="flex size-8 items-center justify-center rounded-full text-[var(--page-text)] transition-[background-color,transform] duration-200 hover:bg-[color-mix(in_srgb,var(--on-surface-muted)_12%,transparent)] active:scale-[0.96] cursor-pointer"
     >
       <GitHubIcon size={14} />
     </a>
@@ -773,7 +791,7 @@ function SurfaceNav() {
                 ref={(el) => { linkRefs.current[s.id] = el; }}
                 href={`#${s.id}`}
                 onClick={(e) => { e.preventDefault(); scrollTo(s.id); }}
-                className="relative z-[1] rounded-full px-3 py-1.5 text-[13px] font-medium transition-[color] duration-200 cursor-pointer outline-none border-none"
+                className="relative z-[1] rounded-full px-3 py-1.5 text-[13px] font-medium transition-[color,transform] duration-200 cursor-pointer outline-none border-none active:scale-[0.96]"
                 style={{
                   color: activeSection === s.id ? "var(--page-text)" : "var(--page-text-muted)",
                 }}
@@ -792,7 +810,7 @@ function SurfaceNav() {
           <a
             href="#"
             onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-            className="flex items-center justify-center rounded-full px-2.5 py-1.5 text-[var(--page-text)] transition-[background-color] duration-200 hover:bg-[color-mix(in_srgb,var(--on-surface-muted)_12%,transparent)] outline-none border-none"
+            className="flex size-8 items-center justify-center rounded-full text-[var(--page-text)] transition-[background-color] duration-200 hover:bg-[color-mix(in_srgb,var(--on-surface-muted)_12%,transparent)] outline-none border-none"
             style={{ fontFamily: "'Reenie Beanie', cursive", fontSize: "24px", lineHeight: 1 }}
           >
             ss
@@ -817,17 +835,30 @@ export default function Page() {
   const [sliderMax, setSliderMax] = useState(1);
   const [sliderStep, setSliderStep] = useState(0.01);
 
+  const entranceStyle = (index: number): React.CSSProperties => ({
+    opacity: 0,
+    animation: `fadeSlideIn 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards`,
+    animationDelay: `${index * STAGGER_BASE}ms`,
+  });
+
   return (
     <div className="min-h-screen bg-[var(--page)]">
+      <style>{`
+        @keyframes fadeSlideIn {
+          from { opacity: 0; transform: translateY(8px); filter: blur(2px); }
+          to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+      `}</style>
+
       {/* Logo + tagline — top center */}
-      <div className="pt-12 pb-4 text-center select-none">
+      <div className="pt-12 pb-4 text-center select-none" style={entranceStyle(0)}>
         <h1
-          className="text-[var(--page-text)]"
+          className="text-[var(--page-text)] text-wrap-balance"
           style={{ fontFamily: "'Reenie Beanie', cursive", fontSize: "36px", lineHeight: 1, letterSpacing: "-0.02em" }}
         >
           scrub slider
         </h1>
-        <p className="text-[13px] text-[var(--page-text-muted)] mt-2 leading-relaxed">
+        <p className="text-[13px] text-[var(--page-text-muted)] mt-2 leading-relaxed text-wrap-pretty">
           A slider with scrub sounds<br />and haptic feedback.
         </p>
       </div>
@@ -838,7 +869,7 @@ export default function Page() {
         <SurfaceNav />
 
         {/* Hero — interactive playground */}
-        <section id="playground" className="relative pb-12 scroll-mt-8">
+        <section id="playground" className="relative pb-12 scroll-mt-8" style={entranceStyle(1)}>
           <div>
             <div className="w-full space-y-10">
               <Slider
@@ -865,17 +896,17 @@ export default function Page() {
         </section>
 
         {/* Install */}
-        <section id="install" className="pb-16 scroll-mt-8">
-          <h2 className="text-[15px] font-semibold text-[var(--page-text)] mb-4 select-none">Install</h2>
+        <section id="install" className="pb-16 scroll-mt-8" style={entranceStyle(2)}>
+          <h2 className="text-[15px] font-semibold text-[var(--page-text)] mb-4 select-none text-wrap-balance">Install</h2>
           <InstallBlock />
-          <p className="mt-4 text-[13px] text-[var(--page-text-muted)] leading-relaxed">
+          <p className="mt-4 text-[13px] text-[var(--page-text-muted)] leading-relaxed text-wrap-pretty">
             Then copy <code className="font-mono text-[var(--page-text)]">slider.tsx</code>, <code className="font-mono text-[var(--page-text)]">use-sound.ts</code>, and <code className="font-mono text-[var(--page-text)]">use-haptics.ts</code> into your project.
           </p>
         </section>
 
         {/* Usage */}
-        <section id="usage" className="pb-16 scroll-mt-8">
-          <h2 className="text-[15px] font-semibold text-[var(--page-text)] mb-4 select-none">Usage</h2>
+        <section id="usage" className="pb-16 scroll-mt-8" style={entranceStyle(3)}>
+          <h2 className="text-[15px] font-semibold text-[var(--page-text)] mb-4 select-none text-wrap-balance">Usage</h2>
           <UsageBlock
             enableSound={enableSound}
             enableHaptics={enableHaptics}
@@ -884,20 +915,20 @@ export default function Page() {
             sliderMax={sliderMax}
             sliderStep={sliderStep}
           />
-          <p className="mt-4 text-[13px] text-[var(--page-text-muted)] leading-relaxed">
+          <p className="mt-4 text-[13px] text-[var(--page-text-muted)] leading-relaxed text-wrap-pretty">
             Updates live as you change parameters above.
           </p>
         </section>
 
         {/* Props */}
-        <section id="props" className="pb-16 scroll-mt-8">
-          <h2 className="text-[15px] font-semibold text-[var(--page-text)] mb-4 select-none">Props</h2>
+        <section id="props" className="pb-16 scroll-mt-8" style={entranceStyle(4)}>
+          <h2 className="text-[15px] font-semibold text-[var(--page-text)] mb-4 select-none text-wrap-balance">Props</h2>
           <PropsTable />
         </section>
 
         {/* CSS Tokens */}
-        <section id="tokens" className="pb-16 scroll-mt-8">
-          <h2 className="text-[15px] font-semibold text-[var(--page-text)] mb-4 select-none">CSS Tokens</h2>
+        <section id="tokens" className="pb-16 scroll-mt-8" style={entranceStyle(5)}>
+          <h2 className="text-[15px] font-semibold text-[var(--page-text)] mb-4 select-none text-wrap-balance">CSS Tokens</h2>
           <CodeBlock
             label="Custom Properties"
             code={`:root {
@@ -912,7 +943,7 @@ export default function Page() {
         </section>
 
         {/* Footer */}
-        <footer className="flex flex-col items-center gap-3 pb-20 text-[13px] text-[var(--page-text-muted)]">
+        <footer className="flex flex-col items-center gap-3 pb-20 text-[13px] text-[var(--page-text-muted)]" style={entranceStyle(6)}>
           <MadeWithLove />
         </footer>
 

@@ -20,7 +20,7 @@ npm i @sethihq/scrub-slider
 ## Usage
 
 ```tsx
-import { Slider } from "@/components/ui/slider";
+import { Slider } from "@sethihq/scrub-slider";
 
 <Slider
   label="Frequency"

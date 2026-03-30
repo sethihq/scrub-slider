@@ -51,6 +51,7 @@
   --page-text: #171717;
   --page-text-muted: #737373;
   --toolbar-border: rgba(0, 0, 0, 0.08);
+  --success: #6bcf7f;
 }
 
 .dark {
@@ -64,6 +65,7 @@
   --page-text: #e8e8e8;
   --page-text-muted: #a1a1a1;
   --toolbar-border: rgba(255, 255, 255, 0.08);
+  --success: #4ade80;
 }
 
 /* Easing curves */
@@ -95,11 +97,11 @@
 
 @keyframes theme-fade-out {
   0% { opacity: 1; filter: blur(0px); }
-  100% { opacity: 0; filter: blur(4px); }
+  100% { opacity: 0; filter: blur(2px); }
 }
 
 @keyframes theme-fade-in {
-  0% { opacity: 0; filter: blur(4px); }
+  0% { opacity: 0; filter: blur(2px); }
   100% { opacity: 1; filter: blur(0px); }
 }
 
@@ -112,16 +114,11 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
-*:focus,
-*:focus-visible,
-*:focus-within {
-  outline: none !important;
-  outline-color: transparent !important;
-  outline-width: 0 !important;
-  box-shadow: none !important;
-  --tw-ring-shadow: none !important;
-  --tw-ring-color: transparent !important;
-  --tw-ring-opacity: 0 !important;
+*:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+  --tw-ring-shadow: none;
+  --tw-ring-color: transparent;
 }
 
 /* Hide all scrollbars */

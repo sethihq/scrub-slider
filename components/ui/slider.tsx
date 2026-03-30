@@ -30,6 +30,7 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(
     const hoverRef = useRef<HTMLDivElement>(null);
     const chipRef = useRef<HTMLDivElement>(null);
     const isDragging = useRef(false);
+    const chipTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [isDraggingState, setIsDraggingState] = useState(false);
     const [hoverValue, setHoverValue] = useState<number | null>(null);
 
@@ -45,7 +46,14 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(
     const handlePointerEnter = () => {
       if (!isDragging.current) {
         if (hoverRef.current) hoverRef.current.style.opacity = "1";
-        if (chipRef.current) chipRef.current.style.opacity = "1";
+        chipTimeoutRef.current = setTimeout(() => {
+          if (chipRef.current) {
+            chipRef.current.style.transition =
+              "opacity 200ms cubic-bezier(0.16, 1, 0.3, 1), transform 200ms cubic-bezier(0.16, 1, 0.3, 1)";
+            chipRef.current.style.opacity = "1";
+            chipRef.current.style.transform = "translateX(-50%) translateY(0)";
+          }
+        }, 200);
       }
     };
 
@@ -74,18 +82,36 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(
     };
 
     const handlePointerLeave = () => {
+      if (chipTimeoutRef.current) {
+        clearTimeout(chipTimeoutRef.current);
+        chipTimeoutRef.current = null;
+      }
       if (!isDragging.current) {
         if (hoverRef.current) hoverRef.current.style.opacity = "0";
-        if (chipRef.current) chipRef.current.style.opacity = "0";
+        if (chipRef.current) {
+          chipRef.current.style.transition =
+            "opacity 100ms ease-in, transform 100ms ease-in";
+          chipRef.current.style.opacity = "0";
+          chipRef.current.style.transform = `translateX(-50%) translateY(${chipPosition === "top" ? "4px" : "-4px"})`;
+        }
         setHoverValue(null);
       }
     };
 
     const handlePointerDown = () => {
+      if (chipTimeoutRef.current) {
+        clearTimeout(chipTimeoutRef.current);
+        chipTimeoutRef.current = null;
+      }
       isDragging.current = true;
       setIsDraggingState(true);
-      // Hide chip during drag, but keep hover fill visible
-      if (chipRef.current) chipRef.current.style.opacity = "0";
+      // Hide chip when dragging starts
+      if (chipRef.current) {
+        chipRef.current.style.transition =
+          "opacity 100ms ease-in, transform 100ms ease-in";
+        chipRef.current.style.opacity = "0";
+        chipRef.current.style.transform = `translateX(-50%) translateY(${chipPosition === "top" ? "4px" : "-4px"})`;
+      }
       updateHoverFillToValue();
     };
 
@@ -132,14 +158,16 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(
           <div
             ref={chipRef}
             className={cn(
-              "pointer-events-none absolute -translate-x-1/2 rounded-full px-2 py-0.5 text-xs font-medium tabular-nums",
+              "pointer-events-none absolute rounded-full px-2 py-0.5 text-xs font-medium tabular-nums",
               chipPosition === "top" ? "-top-8" : "-bottom-8"
             )}
             style={{
               backgroundColor: "var(--chip)",
               color: "var(--on-chip)",
               opacity: 0,
-              transition: "opacity 150ms ease-out",
+              transform: `translateX(-50%) translateY(${chipPosition === "top" ? "4px" : "-4px"})`,
+              transition:
+                "opacity 200ms cubic-bezier(0.16, 1, 0.3, 1), transform 200ms cubic-bezier(0.16, 1, 0.3, 1)",
               whiteSpace: "nowrap",
             }}
           >
@@ -157,7 +185,7 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(
             {/* Hover fill — rendered first so it's behind Range and thumb */}
             <div
               ref={hoverRef}
-              className="absolute h-full rounded-[26px] pointer-events-none"
+              className="absolute h-full rounded-[25px] pointer-events-none"
               style={{
                 backgroundColor:
                   "color-mix(in srgb, var(--on-surface-muted) 18%, transparent)",
@@ -168,7 +196,7 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(
             />
             {/* Custom fill — uses same inset formula as thumb for perfect alignment */}
             <div
-              className="absolute h-full rounded-[26px] pointer-events-none"
+              className="absolute h-full rounded-[25px] pointer-events-none"
               style={{
                 backgroundColor: "color-mix(in srgb, var(--on-surface-muted) 12%, transparent)",
                 width: `calc(12px + (100% - 24px) * ${pct / 100})`,
