@@ -786,6 +786,16 @@ export default function Page() {
   const [sliderMax, setSliderMax] = useState(1);
   const [sliderStep, setSliderStep] = useState(0.01);
 
+  // Tab visibility — swap title when user leaves
+  useEffect(() => {
+    const original = document.title;
+    const onVisibility = () => {
+      document.title = document.hidden ? "👀 Please come back" : original;
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
+
   const entranceStyle = (index: number): React.CSSProperties => ({
     opacity: 0,
     animation: `fadeSlideIn 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards`,
