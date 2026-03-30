@@ -1,9 +1,8 @@
 <p align="center">
-  <img src="https://scrub-slider.vercel.app/og.png" alt="scrub-slider" width="600" />
+  <picture>
+    <img src="public/preview.jpg" alt="scrub-slider" width="520" />
+  </picture>
 </p>
-
-<h3 align="center">scrub-slider</h3>
-<p align="center">A slider with scrub sounds and haptic feedback.</p>
 
 <p align="center">
   <a href="https://scrub-slider.vercel.app">Demo</a> ·
