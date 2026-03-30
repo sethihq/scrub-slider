@@ -45,7 +45,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Reenie+Beanie&display=swap" rel="stylesheet" />
         <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem("scrub-slider-theme");var d=t==="light"?"light":t==="system"?window.matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light":"dark";if(d==="dark")document.documentElement.classList.add("dark");else document.documentElement.classList.remove("dark")}catch(e){}})()` }} />
       </head>
-      <body className="min-h-screen font-sans">
+      <body className="min-h-screen font-sans" suppressHydrationWarning>
         <ThemeProvider>{children}</ThemeProvider>
         <Analytics />
       </body>
