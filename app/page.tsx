@@ -98,7 +98,7 @@ function NumberInput({ label, value, onChange, min, max, inputStep }: { label: s
         min={min}
         max={max}
         step={inputStep}
-        className="w-16 rounded-lg border border-[var(--outline)] bg-transparent px-2 py-1 text-right text-[13px] font-mono text-[var(--page-text)] tabular-nums outline-none focus:border-[var(--on-surface-muted)] transition-colors duration-150"
+        className="w-16 rounded-lg border border-[var(--outline)] bg-transparent px-2 py-1 text-right text-[13px] font-mono text-[var(--page-text)] tabular-nums outline-none focus:border-[var(--on-surface-muted)] transition-colors duration-150 select-text"
       />
     </div>
   );
@@ -118,39 +118,12 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="relative text-[12px] cursor-pointer shrink-0 outline-none overflow-hidden"
-      style={{ height: "18px", minWidth: "42px" }}
+      className="text-[12px] cursor-pointer shrink-0 outline-none"
+      style={{ color: copied ? SUCCESS_COLOR : "var(--page-text-muted)", transition: "color 250ms cubic-bezier(0.16, 1, 0.3, 1)" }}
     >
-      {/* "Copy" text */}
-      <span
-        className="absolute inset-0 flex items-center justify-center"
-        style={{
-          color: "var(--page-text-muted)",
-          opacity: copied ? 0 : 1,
-          transform: copied ? "translateY(-8px)" : "translateY(0)",
-          filter: copied ? "blur(3px)" : "blur(0px)",
-          transition: copied
-            ? "opacity 150ms ease-in, transform 150ms ease-in, filter 150ms ease-in"
-            : "opacity 250ms cubic-bezier(0.16, 1, 0.3, 1), transform 250ms cubic-bezier(0.16, 1, 0.3, 1), filter 250ms cubic-bezier(0.16, 1, 0.3, 1)",
-        }}
-      >
-        Copy
-      </span>
-      {/* "Copied" text */}
-      <span
-        className="absolute inset-0 flex items-center justify-center"
-        style={{
-          color: SUCCESS_COLOR,
-          opacity: copied ? 1 : 0,
-          transform: copied ? "translateY(0)" : "translateY(8px)",
-          filter: copied ? "blur(0px)" : "blur(3px)",
-          transition: copied
-            ? "opacity 250ms cubic-bezier(0.16, 1, 0.3, 1), transform 250ms cubic-bezier(0.16, 1, 0.3, 1), filter 250ms cubic-bezier(0.16, 1, 0.3, 1)"
-            : "opacity 150ms ease-in, transform 150ms ease-in, filter 150ms ease-in",
-        }}
-      >
-        Copied
-      </span>
+      <Calligraph animation="smooth" drift={{ x: 6, y: 0 }} stagger={0.02}>
+        {copied ? "Copied" : "Copy"}
+      </Calligraph>
     </button>
   );
 }
@@ -256,7 +229,7 @@ function CodeBlock({ code, label }: { code: string; label?: string }) {
           <CopyButton text={code} />
         </div>
       )}
-      <pre className="px-5 py-4 overflow-x-auto text-[13px] font-mono leading-relaxed text-[var(--page-text)]">
+      <pre className="px-5 py-4 overflow-x-auto text-[13px] font-mono leading-relaxed text-[var(--page-text)] select-text">
         <code>{highlightCode(code)}</code>
       </pre>
     </div>
@@ -265,7 +238,7 @@ function CodeBlock({ code, label }: { code: string; label?: string }) {
 
 /* ── Install Block with package manager tabs ───────── */
 
-const PKG_MANAGERS = ["npm", "pnpm", "yarn", "bun"] as const;
+const PKG_MANAGERS = ["npm", "pnpm", "yarn", "bun", "skill"] as const;
 const PKG = "@sethihq/scrub-slider";
 
 const INSTALL_PREFIXES: Record<(typeof PKG_MANAGERS)[number], string> = {
@@ -273,11 +246,13 @@ const INSTALL_PREFIXES: Record<(typeof PKG_MANAGERS)[number], string> = {
   pnpm: "pnpm add",
   yarn: "yarn add",
   bun: "bun add",
+  skill: "npx skills add",
 };
 
 function InstallBlock() {
   const [pm, setPm] = useState<(typeof PKG_MANAGERS)[number]>("npm");
-  const fullCommand = `${INSTALL_PREFIXES[pm]} ${PKG}`;
+  const displayPkg = pm === "skill" ? "sethihq/scrub-slider" : PKG;
+  const fullCommand = `${INSTALL_PREFIXES[pm]} ${displayPkg}`;
 
   return (
     <div>
@@ -299,13 +274,13 @@ function InstallBlock() {
       </div>
       <div className="rounded-2xl border border-[var(--outline)] overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4">
-          <pre className="text-[13px] font-mono text-[var(--page-text)] overflow-x-auto">
+          <pre className="text-[13px] font-mono text-[var(--page-text)] overflow-x-auto select-text">
             <code>
               <span className="text-[var(--page-text-muted)]">$ </span>
               <Calligraph animation="smooth" drift={{ x: 8, y: 0 }} stagger={0.03}>
                 {INSTALL_PREFIXES[pm]}
               </Calligraph>
-              <span> {PKG}</span>
+              <span> {displayPkg}</span>
             </code>
           </pre>
           <CopyButton text={fullCommand} />
@@ -342,10 +317,13 @@ function UsageBlock({ enableSound, enableHaptics, chipPosition, sliderMin, slide
     fwTimeoutRef.current = setTimeout(() => {
       setDisplayedFw(fw);
       setFwTransitioning(false);
-      // Measure new content height after swap
+      // Measure new content height after swap, then reset to auto
       requestAnimationFrame(() => {
         if (usageContentRef.current) {
-          setUsageHeight(usageContentRef.current.getBoundingClientRect().height);
+          const newHeight = usageContentRef.current.getBoundingClientRect().height;
+          setUsageHeight(newHeight);
+          // Reset to auto after transition so future measurements are accurate
+          setTimeout(() => setUsageHeight(undefined), 350);
         }
       });
     }, 150);
@@ -466,7 +444,7 @@ const frequency = ref(0.65);
         ref={usageBoxRef}
       >
         <div className="flex items-start justify-between px-5 py-4" ref={usageContentRef}>
-          <pre className="text-[13px] font-mono leading-relaxed text-[var(--page-text)] overflow-x-auto flex-1">
+          <pre className="text-[13px] font-mono leading-relaxed text-[var(--page-text)] overflow-x-auto flex-1 select-text">
             <code>
               <span
                 style={{
@@ -530,7 +508,6 @@ function PropsTable() {
   const [phase, setPhase] = useState<"idle" | "out" | "in">("idle");
   const [direction, setDirection] = useState(1);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-
   const handleCatChange = (cat: string) => {
     if (cat === activeCat) return;
     const oldIdx = PROPS_CATEGORIES.findIndex((c) => c.category === activeCat);
@@ -553,10 +530,10 @@ function PropsTable() {
 
   const contentStyle: React.CSSProperties =
     phase === "out"
-      ? { opacity: 0, transform: `translateX(${-direction * 16}px)`, filter: "blur(3px)", transition: "opacity 120ms ease-in, transform 140ms ease-in, filter 120ms ease-in" }
+      ? { opacity: 0, transform: `translateX(${-direction * 8}px) scale(0.98)`, filter: "blur(6px)", transition: `opacity 150ms ease-in, transform 150ms ease-in, filter 150ms ease-in` }
       : phase === "in"
-        ? { opacity: 0, transform: `translateX(${direction * 16}px)`, filter: "blur(3px)", transition: "none" }
-        : { opacity: 1, transform: "translateX(0)", filter: "blur(0px)", transition: `opacity 220ms ${ease}, transform 260ms ${ease}, filter 220ms ${ease}` };
+        ? { opacity: 0, transform: `translateX(${direction * 8}px) scale(0.98)`, filter: "blur(6px)", transition: "none" }
+        : { opacity: 1, transform: "translateX(0) scale(1)", filter: "blur(0px)", transition: `opacity 280ms ${ease}, transform 320ms ${ease}, filter 250ms ${ease}` };
 
   return (
     <div>
@@ -581,7 +558,7 @@ function PropsTable() {
           {activeProps.map((row, i) => (
             <div
               key={row.prop}
-              className={`flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3 px-4 py-2.5 ${i < activeProps.length - 1 ? "border-b border-[var(--outline)]" : ""}`}
+              className={`flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3 px-4 py-2.5 select-text ${i < activeProps.length - 1 ? "border-b border-[var(--outline)]" : ""}`}
             >
               <span className="font-mono text-[12px] font-medium text-[var(--page-text)] shrink-0 sm:w-[120px]">
                 {row.prop}
@@ -601,7 +578,7 @@ function PropsTable() {
 
 /* ── Surface Nav (Top → Bottom morph) ─────────────── */
 
-const NAV_SURFACE = "border border-[var(--outline)] bg-[var(--surface)] backdrop-blur-xl";
+const NAV_SURFACE = "border border-[color-mix(in_srgb,var(--outline)_50%,transparent)] bg-[var(--surface)] backdrop-blur-xl";
 const NAV_SHADOW = "0 4px 24px rgba(0,0,0,0.06), 0 0 0 1px var(--outline)";
 
 const SECTIONS = [
@@ -621,9 +598,18 @@ function GitHubIcon({ size = 15 }: { size?: number }) {
 
 function SurfaceNav() {
   const [activeSection, setActiveSection] = useState<string>("");
+  const [navVisible, setNavVisible] = useState(false);
   const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
   const [pillStyle, setPillStyle] = useState<{ left: number; width: number } | null>(null);
   const { resolvedTheme, setTheme } = useTheme();
+
+  // Show nav after scrolling past hero
+  useEffect(() => {
+    const onScroll = () => setNavVisible(window.scrollY > 200);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   // Smooth scroll handler
   const scrollTo = (id: string) => {
@@ -719,7 +705,17 @@ function SurfaceNav() {
   return (
     <>
       {/* ─── Bottom Floating Nav — two pills ─── */}
-      <div className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 flex items-center gap-1.5 sm:gap-2 select-none">
+      <div
+        className="fixed bottom-5 left-0 right-0 z-50 flex justify-center select-none"
+        style={{
+          opacity: navVisible ? 1 : 0,
+          transform: `translateY(${navVisible ? "0" : "12px"})`,
+          filter: navVisible ? "blur(0px)" : "blur(4px)",
+          transition: "opacity 400ms cubic-bezier(0.16, 1, 0.3, 1), transform 400ms cubic-bezier(0.16, 1, 0.3, 1), filter 400ms cubic-bezier(0.16, 1, 0.3, 1)",
+          pointerEvents: navVisible ? "auto" : "none",
+        }}
+      >
+      <div className="flex items-center gap-1.5 sm:gap-2">
         {/* Left pill — section navigation */}
         <nav
           className={`flex items-center gap-0.5 rounded-full ${NAV_SURFACE} px-1 sm:px-1.5 py-1.5`}
@@ -774,6 +770,7 @@ function SurfaceNav() {
           {themeButton}
         </div>
       </div>
+      </div>
     </>
   );
 }
@@ -796,7 +793,7 @@ export default function Page() {
   });
 
   return (
-    <div className="min-h-screen bg-[var(--page)]">
+    <div className="min-h-screen bg-[var(--page)] select-none">
       <style>{`
         @keyframes fadeSlideIn {
           from { opacity: 0; transform: translateY(8px); filter: blur(2px); }
@@ -810,10 +807,18 @@ export default function Page() {
           className="text-[var(--page-text)] text-wrap-balance"
           style={{ fontFamily: "'Reenie Beanie', cursive", fontSize: "36px", lineHeight: 1, letterSpacing: "-0.02em" }}
         >
-          scrub slider
+          <Calligraph animation="smooth" stagger={0.04} initial>
+            scrub slider
+          </Calligraph>
         </h1>
-        <p className="text-[13px] text-[var(--page-text-muted)] mt-2 leading-relaxed text-wrap-pretty">
-          A slider with scrub sounds<br />and haptic feedback.
+        <p className="text-[13px] text-[var(--page-text-muted)] mt-2 leading-relaxed">
+          <Calligraph animation="smooth" stagger={0.02} initial>
+            A slider with scrub sounds
+          </Calligraph>
+          <br />
+          <Calligraph animation="smooth" stagger={0.02} initial>
+            and haptic feedback.
+          </Calligraph>
         </p>
       </div>
 
@@ -886,12 +891,12 @@ export default function Page() {
           <CodeBlock
             label="Custom Properties"
             code={`:root {
-  --surface: #ffffff;       /* Track background */
-  --on-surface: #0a0a0a;   /* Thumb indicator */
-  --on-surface-muted: #737373; /* Label, fills */
-  --outline: #e5e5e5;      /* Track border */
-  --chip: #a3a3a3;         /* Hover chip bg */
-  --on-chip: #fafafa;      /* Hover chip text */
+  --surface: #ffffff;           /* Track background */
+  --on-surface: #0a0a0a;        /* Thumb indicator  */
+  --on-surface-muted: #737373;  /* Label, fills     */
+  --outline: #e5e5e5;           /* Track border     */
+  --chip: #a3a3a3;              /* Hover chip bg    */
+  --on-chip: #fafafa;           /* Hover chip text  */
 }`}
           />
         </section>
