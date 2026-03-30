@@ -17,6 +17,12 @@
 npm i @sethihq/scrub-slider
 ```
 
+Or as a Claude Code skill:
+
+```bash
+npx skills add sethihq/scrub-slider
+```
+
 ## Usage
 
 ```tsx
