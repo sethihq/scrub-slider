@@ -790,7 +790,7 @@ export default function Page() {
   useEffect(() => {
     const original = document.title;
     const onVisibility = () => {
-      document.title = document.hidden ? "👀 Please come back" : original;
+      document.title = document.hidden ? "👀 come back (pls)" : original;
     };
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
