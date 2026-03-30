@@ -217,7 +217,7 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(
           </SliderPrimitive.Track>
           {/* Invisible Radix thumb — handles drag + a11y */}
           <SliderPrimitive.Thumb
-            className="block h-8 w-6 cursor-ew-resize opacity-0 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--on-surface-muted)] focus-visible:rounded-full"
+            className="block h-8 w-6 cursor-ew-resize opacity-0 outline-none"
             aria-label={label}
           />
         </SliderPrimitive.Root>
