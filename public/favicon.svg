@@ -1,7 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Reenie+Beanie&amp;display=swap');
-  </style>
-  <rect width="32" height="32" rx="7" fill="#0a0a0a"/>
-  <text x="50%" y="62%" dominant-baseline="middle" text-anchor="middle" font-family="'Reenie Beanie', cursive" font-size="24" fill="#fafafa">ss</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><style>@import url(https://fonts.googleapis.com/css2?family=Reenie+Beanie&amp;display=swap);</style><rect width="32" height="32" fill="#0a0a0a" rx="7"/><text x="50%" y="62%" fill="#fafafa" dominant-baseline="middle" font-family="'Reenie Beanie', cursive" font-size="24" text-anchor="middle">ss</text></svg>
