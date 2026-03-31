@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { useHaptics } from "@/hooks/use-haptics";
 import { useSound } from "@/hooks/use-sound";
 
-interface SliderProps {
+export interface SliderProps {
   value: number;
   onValueChange: (value: number) => void;
   min: number;

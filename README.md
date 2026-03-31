@@ -58,6 +58,7 @@ import { Slider } from "@sethihq/scrub-slider";
 | `unit` | `string` | — | Unit suffix (e.g. `%`) |
 | `chipPosition` | `"top" \| "bottom"` | `"top"` | Hover chip position |
 | `showChip` | `boolean` | `true` | Show/hide hover chip |
+| `className` | `string` | — | Additional class names |
 
 #### Feedback
 

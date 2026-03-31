@@ -4,7 +4,7 @@ description: A slider component with scrub sounds and haptic feedback. Use when 
 license: MIT
 metadata:
   author: sethihq
-  version: "0.2.0"
+  version: "0.2.1"
 ---
 
 # scrub-slider
