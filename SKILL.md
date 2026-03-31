@@ -42,6 +42,7 @@ Copy these into your project:
 | `label` | `string` | — | Yes | Label text |
 | `unit` | `string` | — | No | Unit suffix (e.g. "%") |
 | `chipPosition` | `"top" \| "bottom"` | `"top"` | No | Hover chip position |
+| `showChip` | `boolean` | `true` | No | Show/hide hover chip |
 | `enableSound` | `boolean` | `true` | No | Enable scrub sounds |
 | `enableHaptics` | `boolean` | `true` | No | Enable haptic feedback |
 | `className` | `string` | — | No | Additional class names |

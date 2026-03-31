@@ -517,6 +517,7 @@ const PROPS_CATEGORIES: { category: string; props: { prop: string; type: string;
       { prop: "label", type: "string", default: "\u2014", desc: "Label text", required: true },
       { prop: "unit", type: "string", default: "\u2014", desc: 'Unit suffix (e.g. "%")', required: false },
       { prop: "chipPosition", type: '"top" | "bottom"', default: '"top"', desc: "Hover chip position", required: false },
+      { prop: "showChip", type: "boolean", default: "true", desc: "Show hover chip", required: false },
     ],
   },
   {

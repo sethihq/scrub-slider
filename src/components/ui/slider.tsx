@@ -17,12 +17,13 @@ interface SliderProps {
   unit?: string;
   className?: string;
   chipPosition?: "top" | "bottom";
+  showChip?: boolean;
   enableSound?: boolean;
   enableHaptics?: boolean;
 }
 
 export const Slider = forwardRef<HTMLDivElement, SliderProps>(
-  ({ value, onValueChange, min, max, step, label, unit, className, chipPosition = "top", enableSound = true, enableHaptics = true }, ref) => {
+  ({ value, onValueChange, min, max, step, label, unit, className, chipPosition = "top", showChip = true, enableSound = true, enableHaptics = true }, ref) => {
     const { trigger } = useHaptics();
     const { playScrub } = useSound();
     const pct = ((value - min) / (max - min)) * 100;
@@ -46,14 +47,16 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(
     const handlePointerEnter = () => {
       if (!isDragging.current) {
         if (hoverRef.current) hoverRef.current.style.opacity = "1";
-        chipTimeoutRef.current = setTimeout(() => {
-          if (chipRef.current) {
-            chipRef.current.style.transition =
-              "opacity 200ms cubic-bezier(0.16, 1, 0.3, 1), transform 200ms cubic-bezier(0.16, 1, 0.3, 1)";
-            chipRef.current.style.opacity = "1";
-            chipRef.current.style.transform = "translateX(-50%) translateY(0)";
-          }
-        }, 200);
+        if (showChip) {
+          chipTimeoutRef.current = setTimeout(() => {
+            if (chipRef.current) {
+              chipRef.current.style.transition =
+                "opacity 200ms cubic-bezier(0.16, 1, 0.3, 1), transform 200ms cubic-bezier(0.16, 1, 0.3, 1)";
+              chipRef.current.style.opacity = "1";
+              chipRef.current.style.transform = "translateX(-50%) translateY(0)";
+            }
+          }, 200);
+        }
       }
     };
 
@@ -155,24 +158,26 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(
           step={step}
         >
           {/* Hover value chip */}
-          <div
-            ref={chipRef}
-            className={cn(
-              "pointer-events-none absolute rounded-full px-2 py-0.5 text-xs font-medium tabular-nums",
-              chipPosition === "top" ? "-top-8" : "-bottom-8"
-            )}
-            style={{
-              backgroundColor: "var(--chip)",
-              color: "var(--on-chip)",
-              opacity: 0,
-              transform: `translateX(-50%) translateY(${chipPosition === "top" ? "4px" : "-4px"})`,
-              transition:
-                "opacity 200ms cubic-bezier(0.16, 1, 0.3, 1), transform 200ms cubic-bezier(0.16, 1, 0.3, 1)",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {hoverValue !== null && <NumberFlow value={hoverValue} />}
-          </div>
+          {showChip && (
+            <div
+              ref={chipRef}
+              className={cn(
+                "pointer-events-none absolute rounded-full px-2 py-0.5 text-xs font-medium tabular-nums",
+                chipPosition === "top" ? "-top-8" : "-bottom-8"
+              )}
+              style={{
+                backgroundColor: "var(--chip)",
+                color: "var(--on-chip)",
+                opacity: 0,
+                transform: `translateX(-50%) translateY(${chipPosition === "top" ? "4px" : "-4px"})`,
+                transition:
+                  "opacity 200ms cubic-bezier(0.16, 1, 0.3, 1), transform 200ms cubic-bezier(0.16, 1, 0.3, 1)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {hoverValue !== null && <NumberFlow value={hoverValue} />}
+            </div>
+          )}
           <SliderPrimitive.Track
             ref={trackRef}
             onPointerEnter={handlePointerEnter}
