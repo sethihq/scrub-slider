@@ -118,12 +118,40 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="text-[12px] cursor-pointer shrink-0 outline-none"
-      style={{ color: copied ? SUCCESS_COLOR : "var(--page-text-muted)", transition: "color 250ms cubic-bezier(0.16, 1, 0.3, 1)" }}
+      className="relative size-8 shrink-0 cursor-pointer outline-none flex items-center justify-center rounded-md transition-[background-color] duration-150 hover:bg-[color-mix(in_srgb,var(--on-surface-muted)_10%,transparent)]"
+      aria-label="Copy to clipboard"
     >
-      <Calligraph animation="smooth" drift={{ x: 6, y: 0 }} stagger={0.02}>
-        {copied ? "Copied" : "Copy"}
-      </Calligraph>
+      {/* Copy icon */}
+      <svg
+        width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+        className="absolute"
+        style={{
+          color: "var(--page-text-muted)",
+          opacity: copied ? 0 : 0.5,
+          transform: copied ? "scale(0.5)" : "scale(1)",
+          filter: copied ? "blur(4px)" : "blur(0px)",
+          transition: "opacity 200ms ease-out, transform 200ms ease-out, filter 200ms ease-out",
+        }}
+      >
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+      </svg>
+      {/* Check icon */}
+      <svg
+        width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+        className="absolute"
+        style={{
+          color: SUCCESS_COLOR,
+          opacity: copied ? 1 : 0,
+          transform: copied ? "scale(1)" : "scale(0.5)",
+          filter: copied ? "blur(0px)" : "blur(4px)",
+          transition: copied
+            ? "opacity 250ms cubic-bezier(0.16, 1, 0.3, 1), transform 250ms cubic-bezier(0.16, 1, 0.3, 1), filter 250ms cubic-bezier(0.16, 1, 0.3, 1)"
+            : "opacity 150ms ease-in, transform 150ms ease-in, filter 150ms ease-in",
+        }}
+      >
+        <polyline points="20 6 9 17 4 12" />
+      </svg>
     </button>
   );
 }
