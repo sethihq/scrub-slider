@@ -322,8 +322,8 @@ function InstallBlock() {
 
 const FRAMEWORKS = ["React", "TypeScript", "Vue", "Svelte"] as const;
 
-function UsageBlock({ enableSound, enableHaptics, chipPosition, sliderMin, sliderMax, sliderStep }: {
-  enableSound: boolean; enableHaptics: boolean; chipPosition: string; sliderMin: number; sliderMax: number; sliderStep: number;
+function UsageBlock({ enableSound, enableHaptics, chipPosition, showChip, sliderMin, sliderMax, sliderStep }: {
+  enableSound: boolean; enableHaptics: boolean; chipPosition: string; showChip: boolean; sliderMin: number; sliderMax: number; sliderStep: number;
 }) {
   const [fw, setFw] = useState<(typeof FRAMEWORKS)[number]>("React");
   const [displayedFw, setDisplayedFw] = useState(fw);
@@ -361,6 +361,7 @@ function UsageBlock({ enableSound, enableHaptics, chipPosition, sliderMin, slide
     !enableSound ? "  enableSound={false}" : "",
     !enableHaptics ? "  enableHaptics={false}" : "",
     chipPosition !== "top" ? `  chipPosition="${chipPosition}"` : "",
+    !showChip ? "  showChip={false}" : "",
   ].filter(Boolean).join("\n");
 
   const snippets: Record<(typeof FRAMEWORKS)[number], string> = {
@@ -393,7 +394,7 @@ const [frequency, setFrequency] = useState<number>(0.65);
     @update:value="frequency = $event"
     :min="${sliderMin}"
     :max="${sliderMax}"
-    :step="${sliderStep}"${!enableSound ? '\n    :enable-sound="false"' : ""}${!enableHaptics ? '\n    :enable-haptics="false"' : ""}${chipPosition !== "top" ? `\n    chip-position="${chipPosition}"` : ""}
+    :step="${sliderStep}"${!enableSound ? '\n    :enable-sound="false"' : ""}${!enableHaptics ? '\n    :enable-haptics="false"' : ""}${chipPosition !== "top" ? `\n    chip-position="${chipPosition}"` : ""}${!showChip ? '\n    :show-chip="false"' : ""}
   />
 </template>
 
@@ -412,7 +413,7 @@ const frequency = ref(0.65);
   on:change={(e) => frequency = e.detail}
   min={${sliderMin}}
   max={${sliderMax}}
-  step={${sliderStep}}${!enableSound ? "\n  enableSound={false}" : ""}${!enableHaptics ? "\n  enableHaptics={false}" : ""}${chipPosition !== "top" ? `\n  chipPosition="${chipPosition}"` : ""}
+  step={${sliderStep}}${!enableSound ? "\n  enableSound={false}" : ""}${!enableHaptics ? "\n  enableHaptics={false}" : ""}${chipPosition !== "top" ? `\n  chipPosition="${chipPosition}"` : ""}${!showChip ? "\n  showChip={false}" : ""}
 />`,
   };
 
@@ -811,6 +812,7 @@ export default function Page() {
   const [enableSound, setEnableSound] = useState(true);
   const [enableHaptics, setEnableHaptics] = useState(true);
   const [chipPosition, setChipPosition] = useState<"top" | "bottom">("top");
+  const [showChip, setShowChip] = useState(true);
   const [sliderMin, setSliderMin] = useState(0);
   const [sliderMax, setSliderMax] = useState(1);
   const [sliderStep, setSliderStep] = useState(0.01);
@@ -880,11 +882,13 @@ export default function Page() {
                 enableSound={enableSound}
                 enableHaptics={enableHaptics}
                 chipPosition={chipPosition}
+                showChip={showChip}
               />
               <div className="rounded-2xl border border-[var(--outline)] px-4 divide-y divide-[var(--outline)]">
                 <Toggle label="Sound" checked={enableSound} onChange={setEnableSound} />
                 <Toggle label="Haptics" checked={enableHaptics} onChange={setEnableHaptics} />
                 <SegmentedControl label="Chip" options={["top", "bottom"]} value={chipPosition} onChange={(v) => setChipPosition(v as "top" | "bottom")} />
+                <Toggle label="Show Chip" checked={showChip} onChange={setShowChip} />
                 <NumberInput label="Min" value={sliderMin} onChange={setSliderMin} min={-1000} max={sliderMax - sliderStep} inputStep={0.1} />
                 <NumberInput label="Max" value={sliderMax} onChange={setSliderMax} min={sliderMin + sliderStep} max={10000} inputStep={0.1} />
                 <NumberInput label="Step" value={sliderStep} onChange={setSliderStep} min={0.001} max={sliderMax - sliderMin} inputStep={0.001} />
@@ -909,6 +913,7 @@ export default function Page() {
             enableSound={enableSound}
             enableHaptics={enableHaptics}
             chipPosition={chipPosition}
+            showChip={showChip}
             sliderMin={sliderMin}
             sliderMax={sliderMax}
             sliderStep={sliderStep}
