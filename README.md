@@ -57,6 +57,7 @@ import { Slider } from "@sethihq/scrub-slider";
 | `label` | `string` | — | Label text |
 | `unit` | `string` | — | Unit suffix (e.g. `%`) |
 | `chipPosition` | `"top" \| "bottom"` | `"top"` | Hover chip position |
+| `showChip` | `boolean` | `true` | Show/hide hover chip |
 
 #### Feedback
 
