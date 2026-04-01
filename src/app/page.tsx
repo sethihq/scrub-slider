@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Calligraph } from "calligraph";
 import { Slider } from "@/components/ui/slider";
 import { useTheme } from "@/hooks/use-theme";
@@ -805,6 +805,215 @@ function SurfaceNav() {
   );
 }
 
+/* ── Pixel Canvas (Easter Egg) ─────────────────────── */
+
+const CELL_SIZE = 12;
+const CANVAS_ROWS = 16;
+
+function PixelCanvas() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const pixelsRef = useRef<Set<string>>(new Set());
+  const drawingRef = useRef(false);
+  const hoveredRef = useRef(false);
+  const colsRef = useRef(0);
+
+  const getColors = useCallback(() => {
+    const style = getComputedStyle(document.documentElement);
+    return {
+      surface: style.getPropertyValue("--surface").trim() || "#ffffff",
+      draw: style.getPropertyValue("--on-surface-muted").trim() || "#737373",
+      grid: style.getPropertyValue("--outline").trim() || "#e5e5e5",
+    };
+  }, []);
+
+  const drawCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const cols = colsRef.current;
+    const rows = CANVAS_ROWS;
+    const colors = getColors();
+
+    // Clear and fill background
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = colors.surface;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw grid lines
+    ctx.strokeStyle = colors.grid;
+    ctx.globalAlpha = 0.08;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = 0; x <= cols; x++) {
+      const px = x * CELL_SIZE + 0.5;
+      ctx.moveTo(px, 0);
+      ctx.lineTo(px, rows * CELL_SIZE);
+    }
+    for (let y = 0; y <= rows; y++) {
+      const py = y * CELL_SIZE + 0.5;
+      ctx.moveTo(0, py);
+      ctx.lineTo(cols * CELL_SIZE, py);
+    }
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // Draw filled pixels
+    ctx.fillStyle = colors.draw;
+    for (const key of pixelsRef.current) {
+      const [cx, cy] = key.split(",").map(Number);
+      ctx.fillRect(cx * CELL_SIZE, cy * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    }
+  }, [getColors]);
+
+  const fillCell = useCallback((e: PointerEvent) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.floor((e.clientX - rect.left) / CELL_SIZE);
+    const y = Math.floor((e.clientY - rect.top) / CELL_SIZE);
+    if (x < 0 || y < 0 || x >= colsRef.current || y >= CANVAS_ROWS) return;
+    const key = `${x},${y}`;
+    if (!pixelsRef.current.has(key)) {
+      pixelsRef.current.add(key);
+      drawCanvas();
+    }
+  }, [drawCanvas]);
+
+  // Canvas sizing + ResizeObserver + theme observer
+  useEffect(() => {
+    const container = containerRef.current;
+    const canvas = canvasRef.current;
+    if (!container || !canvas) return;
+
+    const resize = () => {
+      const width = container.clientWidth;
+      const cols = Math.floor(width / CELL_SIZE);
+      colsRef.current = cols;
+      canvas.width = cols * CELL_SIZE;
+      canvas.height = CANVAS_ROWS * CELL_SIZE;
+      canvas.style.width = `${cols * CELL_SIZE}px`;
+      canvas.style.height = `${CANVAS_ROWS * CELL_SIZE}px`;
+      drawCanvas();
+    };
+
+    const ro = new ResizeObserver(resize);
+    ro.observe(container);
+
+    // Theme change detection
+    const mo = new MutationObserver(() => {
+      requestAnimationFrame(drawCanvas);
+    });
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+
+    return () => {
+      ro.disconnect();
+      mo.disconnect();
+    };
+  }, [drawCanvas]);
+
+  // Pointer event handlers
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const onDown = (e: PointerEvent) => {
+      drawingRef.current = true;
+      canvas.setPointerCapture(e.pointerId);
+      fillCell(e);
+    };
+
+    const onMove = (e: PointerEvent) => {
+      if (!drawingRef.current) return;
+      fillCell(e);
+    };
+
+    const onUp = () => {
+      drawingRef.current = false;
+    };
+
+    canvas.addEventListener("pointerdown", onDown);
+    canvas.addEventListener("pointermove", onMove);
+    canvas.addEventListener("pointerup", onUp);
+    canvas.addEventListener("pointercancel", onUp);
+
+    return () => {
+      canvas.removeEventListener("pointerdown", onDown);
+      canvas.removeEventListener("pointermove", onMove);
+      canvas.removeEventListener("pointerup", onUp);
+      canvas.removeEventListener("pointercancel", onUp);
+    };
+  }, [fillCell]);
+
+  // Keyboard shortcuts (S = save, C = clear) while hovered
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!hoveredRef.current) return;
+      if (e.key === "s" || e.key === "S") {
+        e.preventDefault();
+        handleSave();
+      }
+      if (e.key === "c" || e.key === "C") {
+        e.preventDefault();
+        handleClear();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const handleSave = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const url = canvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "scrub-sketch.png";
+    a.click();
+  };
+
+  const handleClear = () => {
+    pixelsRef.current.clear();
+    drawCanvas();
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative w-full rounded-2xl border border-[var(--outline)] overflow-hidden"
+      onPointerEnter={() => { hoveredRef.current = true; }}
+      onPointerLeave={() => { hoveredRef.current = false; }}
+    >
+      <canvas
+        ref={canvasRef}
+        className="block cursor-crosshair touch-none"
+        style={{ imageRendering: "pixelated" }}
+      />
+      {/* Toolbar */}
+      <div className="absolute bottom-2 left-2 flex items-center gap-1.5 select-none">
+        <button
+          onClick={handleSave}
+          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-[background-color,opacity] duration-150 cursor-pointer outline-none hover:opacity-80 active:scale-[0.97]"
+          style={{ backgroundColor: "var(--outline)", color: "var(--page-text-muted)" }}
+        >
+          <kbd className="inline-flex items-center justify-center rounded px-1 py-px text-[10px] font-mono leading-none" style={{ backgroundColor: "color-mix(in srgb, var(--on-surface-muted) 15%, transparent)" }}>S</kbd>
+          Save
+        </button>
+        <button
+          onClick={handleClear}
+          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium transition-[background-color,opacity] duration-150 cursor-pointer outline-none hover:opacity-80 active:scale-[0.97]"
+          style={{ backgroundColor: "var(--outline)", color: "var(--page-text-muted)" }}
+        >
+          <kbd className="inline-flex items-center justify-center rounded px-1 py-px text-[10px] font-mono leading-none" style={{ backgroundColor: "color-mix(in srgb, var(--on-surface-muted) 15%, transparent)" }}>C</kbd>
+          Clear
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ── Page ──────────────────────────────────────────── */
 
 export default function Page() {
@@ -946,8 +1155,13 @@ export default function Page() {
         </section>
 
         {/* Footer */}
-        <footer className="flex flex-col items-center gap-3 pb-20 text-[13px] text-[var(--page-text-muted)]" style={entranceStyle(6)}>
-          <MadeWithLove />
+        <footer className="flex flex-col items-center gap-6 pb-20 text-[13px] text-[var(--page-text-muted)]">
+          <div className="w-full" style={entranceStyle(6)}>
+            <PixelCanvas />
+          </div>
+          <div style={entranceStyle(7)}>
+            <MadeWithLove />
+          </div>
         </footer>
 
       </div>
