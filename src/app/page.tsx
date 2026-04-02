@@ -106,14 +106,34 @@ function NumberInput({ label, value, onChange, min, max, inputStep }: { label: s
 
 /* ── Copy Button ───────────────────────────────────── */
 
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
+type CopyState = "idle" | "done" | "error";
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+function CopyButton({ text }: { text: string }) {
+  const [state, setState] = useState<CopyState>("idle");
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const handleCopy = async () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    try {
+      await navigator.clipboard.writeText(text);
+      setState("done");
+    } catch {
+      setState("error");
+    }
+    timeoutRef.current = setTimeout(() => setState("idle"), 1500);
   };
+
+  const iconTransition = (active: boolean) =>
+    active
+      ? "opacity 150ms ease-out, transform 150ms ease-out, filter 150ms ease-out"
+      : "opacity 150ms ease-out, transform 150ms ease-out, filter 150ms ease-out";
+
+  const show = (visible: boolean) => ({
+    opacity: visible ? 1 : 0,
+    transform: visible ? "scale(1)" : "scale(0.8)",
+    filter: visible ? "blur(0px)" : "blur(2px)",
+    transition: iconTransition(visible),
+  });
 
   return (
     <button
@@ -125,13 +145,7 @@ function CopyButton({ text }: { text: string }) {
       <svg
         width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
         className="absolute"
-        style={{
-          color: "var(--page-text-muted)",
-          opacity: copied ? 0 : 0.5,
-          transform: copied ? "scale(0.5)" : "scale(1)",
-          filter: copied ? "blur(4px)" : "blur(0px)",
-          transition: "opacity 200ms ease-out, transform 200ms ease-out, filter 200ms ease-out",
-        }}
+        style={{ color: "var(--page-text-muted)", ...show(state === "idle") }}
       >
         <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
@@ -140,17 +154,19 @@ function CopyButton({ text }: { text: string }) {
       <svg
         width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
         className="absolute"
-        style={{
-          color: SUCCESS_COLOR,
-          opacity: copied ? 1 : 0,
-          transform: copied ? "scale(1)" : "scale(0.5)",
-          filter: copied ? "blur(0px)" : "blur(4px)",
-          transition: copied
-            ? "opacity 250ms cubic-bezier(0.16, 1, 0.3, 1), transform 250ms cubic-bezier(0.16, 1, 0.3, 1), filter 250ms cubic-bezier(0.16, 1, 0.3, 1)"
-            : "opacity 150ms ease-in, transform 150ms ease-in, filter 150ms ease-in",
-        }}
+        style={{ color: SUCCESS_COLOR, ...show(state === "done") }}
       >
         <polyline points="20 6 9 17 4 12" />
+      </svg>
+      {/* Error icon */}
+      <svg
+        width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+        className="absolute"
+        style={{ color: "var(--page-text-muted)", ...show(state === "error") }}
+      >
+        <circle cx="12" cy="12" r="10" />
+        <line x1="15" y1="9" x2="9" y2="15" />
+        <line x1="9" y1="9" x2="15" y2="15" />
       </svg>
     </button>
   );
@@ -266,52 +282,109 @@ function CodeBlock({ code, label }: { code: string; label?: string }) {
 
 /* ── Install Block with package manager tabs ───────── */
 
-const PKG_MANAGERS = ["npm", "pnpm", "yarn", "bun", "skill"] as const;
+const PM_OPTIONS = ["npm", "pnpm", "yarn", "bun", "skill"] as const;
+type PackageManager = (typeof PM_OPTIONS)[number];
 const PKG = "@sethihq/scrub-slider";
+const PM_STORAGE_KEY = "scrub-slider-pm";
 
-const INSTALL_PREFIXES: Record<(typeof PKG_MANAGERS)[number], string> = {
-  npm: "npm i",
-  pnpm: "pnpm add",
-  yarn: "yarn add",
-  bun: "bun add",
-  skill: "npx skills add",
+const INSTALL_COMMANDS: Record<PackageManager, string> = {
+  npm: `npm i ${PKG}`,
+  pnpm: `pnpm add ${PKG}`,
+  yarn: `yarn add ${PKG}`,
+  bun: `bun add ${PKG}`,
+  skill: `npx skills add sethihq/scrub-slider`,
+};
+
+const PM_ICONS: Record<PackageManager, React.ReactNode> = {
+  pnpm: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M0 0v7.5h7.5V0zm8.25 0v7.5h7.498V0zm8.25 0v7.5H24V0zM8.25 8.25v7.5h7.498v-7.5zm8.25 0v7.5H24v-7.5zM0 16.5V24h7.5v-7.5zm8.25 0V24h7.498v-7.5zm8.25 0V24H24v-7.5z" />
+    </svg>
+  ),
+  yarn: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 0C5.375 0 0 5.375 0 12s5.375 12 12 12 12-5.375 12-12S18.625 0 12 0zm.768 4.105c.183 0 .363.053.525.157.125.083.287.185.755 1.154.31-.088.468-.042.551-.019.204.056.366.19.463.375.477.917.542 2.553.334 3.605-.241 1.232-.755 2.029-1.131 2.576.324.329.778.899 1.117 1.825.278.774.31 1.478.273 2.015a5.51 5.51 0 0 0 .602-.329c.593-.366 1.487-.917 2.553-.931.714-.009 1.269.445 1.353 1.103a1.23 1.23 0 0 1-.945 1.362c-.649.158-.95.278-1.821.843-1.232.797-2.539 1.242-3.012 1.39a1.686 1.686 0 0 1-.704.343c-.737.181-3.266.315-3.466.315h-.046c-.783 0-1.214-.241-1.45-.491-.658.329-1.51.19-2.122-.134a1.078 1.078 0 0 1-.58-1.153 1.243 1.243 0 0 1-.153-.195c-.162-.25-.528-.936-.454-1.946.056-.723.556-1.367.88-1.71a5.522 5.522 0 0 1 .408-2.256c.306-.727.885-1.348 1.32-1.737-.32-.537-.644-1.367-.329-2.21.227-.602.412-.936.82-1.08h-.005c.199-.074.389-.153.486-.259a3.418 3.418 0 0 1 2.298-1.103c.037-.093.079-.185.125-.283.31-.658.639-1.029 1.024-1.168a.94.94 0 0 1 .328-.06zm.006.7c-.507.016-1.001 1.519-1.001 1.519s-1.27-.204-2.266.871c-.199.218-.468.334-.746.44-.079.028-.176.023-.417.672-.371.991.625 2.094.625 2.094s-1.186.839-1.626 1.881c-.486 1.144-.338 2.261-.338 2.261s-.843.732-.899 1.487c-.051.663.139 1.2.343 1.515.227.343.51.176.51.176s-.561.653-.037.931c.477.25 1.283.394 1.71-.037.31-.31.371-1.001.486-1.283.028-.065.12.111.209.199.097.093.264.195.264.195s-.755.324-.445 1.066c.102.246.468.403 1.066.398.222-.005 2.664-.139 3.313-.296.375-.088.505-.283.505-.283s1.566-.431 2.998-1.357c.917-.598 1.293-.76 2.034-.936.612-.148.57-1.098-.241-1.084-.839.009-1.575.44-2.196.825-1.163.718-1.742.672-1.742.672l-.018-.032c-.079-.13.371-1.293-.134-2.678-.547-1.515-1.413-1.881-1.344-1.997.297-.5 1.038-1.297 1.334-2.78.176-.899.13-2.377-.269-3.151-.074-.144-.732.241-.732.241s-.616-1.371-.788-1.483a.271.271 0 0 0-.157-.046z" />
+    </svg>
+  ),
+  npm: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z" />
+    </svg>
+  ),
+  bun: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 22.596c6.628 0 12-4.338 12-9.688 0-3.318-2.057-6.248-5.219-7.986-1.286-.715-2.297-1.357-3.139-1.89C14.058 2.025 13.08 1.404 12 1.404c-1.097 0-2.334.785-3.966 1.821a49.92 49.92 0 0 1-2.816 1.697C2.057 6.66 0 9.59 0 12.908c0 5.35 5.372 9.687 12 9.687v.001ZM10.599 4.715c.334-.759.503-1.58.498-2.409 0-.145.202-.187.23-.029.658 2.783-.902 4.162-2.057 4.624-.124.048-.199-.121-.103-.209a5.763 5.763 0 0 0 1.432-1.977Zm2.058-.102a5.82 5.82 0 0 0-.782-2.306v-.016c-.069-.123.086-.263.185-.172 1.962 2.111 1.307 4.067.556 5.051-.082.103-.23-.003-.189-.126a5.85 5.85 0 0 0 .23-2.431Zm1.776-.561a5.727 5.727 0 0 0-1.612-1.806v-.014c-.112-.085-.024-.274.114-.218 2.595 1.087 2.774 3.18 2.459 4.407a.116.116 0 0 1-.049.071.11.11 0 0 1-.153-.026.122.122 0 0 1-.022-.083 5.891 5.891 0 0 0-.737-2.331Zm-5.087.561c-.617.546-1.282.76-2.063 1-.117 0-.195-.078-.156-.181 1.752-.909 2.376-1.649 2.999-2.778 0 0 .155-.118.188.085 0 .304-.349 1.329-.968 1.874Zm4.945 11.237a2.957 2.957 0 0 1-.937 1.553c-.346.346-.8.565-1.286.62a2.178 2.178 0 0 1-1.327-.62 2.955 2.955 0 0 1-.925-1.553.244.244 0 0 1 .064-.198.234.234 0 0 1 .193-.069h3.965a.226.226 0 0 1 .19.07c.05.053.073.125.063.197Zm-5.458-2.176a1.862 1.862 0 0 1-2.384-.245 1.98 1.98 0 0 1-.233-2.447c.207-.319.503-.566.848-.713a1.84 1.84 0 0 1 1.092-.11c.366.075.703.261.967.531a1.98 1.98 0 0 1 .408 2.114 1.931 1.931 0 0 1-.698.869v.001Zm8.495.005a1.86 1.86 0 0 1-2.381-.253 1.964 1.964 0 0 1-.547-1.366c0-.384.11-.76.32-1.079.207-.319.503-.567.849-.713a1.844 1.844 0 0 1 1.093-.108c.367.076.704.262.968.534a1.98 1.98 0 0 1 .4 2.117 1.932 1.932 0 0 1-.702.868Z" />
+    </svg>
+  ),
+  skill: (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" fillRule="evenodd">
+      <path d="M4.709 15.955l4.72-2.647.08-.23-.08-.128H9.2l-.79-.048-2.698-.073-2.339-.097-2.266-.122-.571-.121L0 11.784l.055-.352.48-.321.686.06 1.52.103 2.278.158 1.652.097 2.449.255h.389l.055-.157-.134-.098-.103-.097-2.358-1.596-2.552-1.688-1.336-.972-.724-.491-.364-.462-.158-1.008.656-.722.881.06.225.061.893.686 1.908 1.476 2.491 1.833.365.304.145-.103.019-.073-.164-.274-1.355-2.446-1.446-2.49-.644-1.032-.17-.619a2.97 2.97 0 01-.104-.729L6.283.134 6.696 0l.996.134.42.364.62 1.414 1.002 2.229 1.555 3.03.456.898.243.832.091.255h.158V9.01l.128-1.706.237-2.095.23-2.695.08-.76.376-.91.747-.492.584.28.48.685-.067.444-.286 1.851-.559 2.903-.364 1.942h.212l.243-.242.985-1.306 1.652-2.064.73-.82.85-.904.547-.431h1.033l.76 1.129-.34 1.166-1.064 1.347-.881 1.142-1.264 1.7-.79 1.36.073.11.188-.02 2.856-.606 1.543-.28 1.841-.315.833.388.091.395-.328.807-1.969.486-2.309.462-3.439.813-.042.03.049.061 1.549.146.662.036h1.622l3.02.225.79.522.474.638-.079.485-1.215.62-1.64-.389-3.829-.91-1.312-.329h-.182v.11l1.093 1.068 2.006 1.81 2.509 2.33.127.578-.322.455-.34-.049-2.205-1.657-.851-.747-1.926-1.62h-.128v.17l.444.649 2.345 3.521.122 1.08-.17.353-.608.213-.668-.122-1.374-1.925-1.415-2.167-1.143-1.943-.14.08-.674 7.254-.316.37-.729.28-.607-.461-.322-.747.322-1.476.389-1.924.315-1.53.286-1.9.17-.632-.012-.042-.14.018-1.434 1.967-2.18 2.945-1.726 1.845-.414.164-.717-.37.067-.662.401-.589 2.388-3.036 1.44-1.882.93-1.086-.006-.158h-.055L4.132 18.56l-1.13.146-.487-.456.061-.746.231-.243 1.908-1.312-.006.006z" />
+    </svg>
+  ),
 };
 
 function InstallBlock() {
-  const [pm, setPm] = useState<(typeof PKG_MANAGERS)[number]>("npm");
-  const displayPkg = pm === "skill" ? "sethihq/scrub-slider" : PKG;
-  const fullCommand = `${INSTALL_PREFIXES[pm]} ${displayPkg}`;
+  const [pm, setPm] = useState<PackageManager>("npm");
+  const [hydrated, setHydrated] = useState(false);
+
+  // Restore from localStorage after hydration
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(PM_STORAGE_KEY);
+      if (stored && PM_OPTIONS.includes(stored as PackageManager)) {
+        setPm(stored as PackageManager);
+      }
+    } catch {}
+    setHydrated(true);
+  }, []);
+
+  // Persist selection
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(PM_STORAGE_KEY, pm);
+    } catch {}
+  }, [pm, hydrated]);
+
+  const command = INSTALL_COMMANDS[pm];
+  const parts = command.split(" ");
+  const prefix = pm === "skill" ? parts.slice(0, 3).join(" ") : parts.slice(0, 2).join(" ");
+  const pkg = pm === "skill" ? "sethihq/scrub-slider" : PKG;
 
   return (
     <div>
-      <div className="flex items-center gap-2 sm:gap-4 mb-4 select-none">
-        {PKG_MANAGERS.map((p) => (
+      {/* Tab bar */}
+      <div className="flex items-center gap-3 sm:gap-5 mb-4 select-none">
+        {PM_OPTIONS.map((p) => (
           <button
             key={p}
             onClick={() => setPm(p)}
-            className="text-[14px] min-h-[40px] cursor-pointer transition-[color,opacity,transform] duration-150 outline-none hover:opacity-70 active:scale-[0.96]"
+            className="inline-flex items-center gap-1.5 text-[14px] min-h-[40px] cursor-pointer transition-[color,opacity,transform] duration-150 outline-none hover:opacity-70 active:scale-[0.96]"
             style={{
               color: pm === p ? "var(--page-text)" : "var(--page-text-muted)",
               fontWeight: pm === p ? 600 : 400,
-              opacity: pm === p ? 1 : 0.5,
+              opacity: pm === p ? 1 : 0.4,
             }}
           >
+            {PM_ICONS[p]}
             {p}
           </button>
         ))}
       </div>
+
+      {/* Command block */}
       <div className="rounded-2xl border border-[var(--outline)] overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4">
           <pre className="text-[13px] font-mono text-[var(--page-text)] overflow-x-auto select-text">
             <code>
-              <span className="text-[var(--page-text-muted)]">$ </span>
+              <span className="select-none text-[var(--page-text-muted)]">$ </span>
               <Calligraph animation="smooth" drift={{ x: 8, y: 0 }} stagger={0.03}>
-                {INSTALL_PREFIXES[pm]}
+                {prefix}
               </Calligraph>
-              <span> {displayPkg}</span>
+              <span> {pkg}</span>
             </code>
           </pre>
-          <CopyButton text={fullCommand} />
+          <CopyButton text={command} />
         </div>
       </div>
     </div>
@@ -635,7 +708,7 @@ function SurfaceNav() {
 
   // Show nav after scrolling past hero
   useEffect(() => {
-    const onScroll = () => setNavVisible(window.scrollY > 200);
+    const onScroll = () => setNavVisible(window.scrollY > 20);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
